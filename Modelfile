@@ -1,0 +1,8 @@
+FROM qwen3-coder:30b
+
+# Set system prompt to strictly demand JSON
+SYSTEM """You are a helpful coding assistant. When calling tools, you must output valid JSON objects matching the schema exactly. Do not add markdown formatting or conversational filler around the JSON payload."""
+
+# Force JSON output mode from the backend
+PARAMETER num_predict 2048
+PARAMETER temperature 0.0
