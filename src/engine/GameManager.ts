@@ -39,7 +39,7 @@ export class GameManager {
     if (gui && typeof gui.updateUI === "function") gui.updateUI();
   }
 
-  calculateHeroAttack(target: any, tName: string, logger: any, popText: any, gui: any) {
+  calculateHeroAttack(target: any, tName: string, logger: any, popText: any, gui?: any) {
     this.hero.attackCooldown = this.hero.getAttackInterval(); 
     let dmg = Math.floor(this.hero.getEffectiveDamage() + Math.random() * 8);
 

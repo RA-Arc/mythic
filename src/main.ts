@@ -74,7 +74,7 @@ async function run() {
         if (hero.state !== "run" && hero.hurtTimer <= 0) hero.setState("run"); hero.sprite.scale.x = dx < 0 ? -1 : 1;
       } else {
         if (hero.hurtTimer <= 0 && hero.state !== "attack") hero.setState("attack");
-        if (hero.attackCooldown === 0) gm.calculateHeroAttack(target, tName, logger, popText);
+        if (hero.attackCooldown === 0) gm.calculateHeroAttack(target, tName, logger, popText, gui);
       }
       if (dist < 115 && target.hp > 0 && hero.attackCooldown === Math.floor(hero.getAttackInterval() / 2)) {
         const ed = Math.floor(target.baseDmg * (0.8 + Math.random()*0.4)); hero.takeDamage(ed); popText(`-${ed}`, hero.sprite.x, hero.sprite.y - 45, "#ff4444"); logger.printLine(`${tName} hits YOU for ${ed} damage!`, "#ff5555");
