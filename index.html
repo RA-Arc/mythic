@@ -3,29 +3,599 @@
 <head>
   <meta charset="UTF-8" />
   <title>Mythic Idle RPG</title>
-  <meta name="description" content="An idle RPG game powered by PixiJS with hero animations, combat, boss encounters, character matrices, and equipment system." />
+  <meta name="description" content="Mythic Human History Idle RPG — A 10-era mythic timeline RPG featuring ancestral memories, cosmic forces, era-energy generators, real-time tactical combat, boss battles, gear crafting, and ascension mechanics." />
   <meta property="og:title" content="Mythic Idle RPG" />
-  <meta property="og:description" content="An idle RPG game powered by PixiJS with hero animations, combat, boss encounters, character matrices, and equipment system." />
+  <meta property="og:description" content="Mythic Human History Idle RPG — A 10-era mythic timeline RPG featuring ancestral memories, cosmic forces, era-energy generators, real-time tactical combat, boss battles, gear crafting, and ascension mechanics." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
+    :root {
+      --bg-canvas: #090b10;
+      --bg-panel: #0d1117;
+      --bg-card: #161b22;
+      --bg-hover: #21262d;
+      --border-color: #30363d;
+      --border-focus: #58a6ff;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-blue: #1f6feb;
+      --accent-gold: #ffd700;
+      --accent-green: #238636;
+      --accent-purple: #8957e5;
+      --accent-red: #da3633;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
     body {
-      background-color: #121214;
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-family);
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+
+    /* Main App Layout */
+    #app-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      min-height: 100vh;
+      max-width: 1920px;
+      margin: 0 auto;
+    }
+
+    /* Top Global Header */
+    #app-header {
+      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    .header-badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--border-focus);
+      border: 1px solid rgba(88, 166, 255, 0.4);
+      padding: 2px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .header-quick-stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+    }
+
+    .quick-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    /* 3-Column Responsive Body Layout */
+    #main-content-layout {
+      display: grid;
+      grid-template-columns: 290px 1fr 330px;
+      gap: 16px;
+      padding: 16px;
+      flex: 1;
+      align-items: start;
+      width: 100%;
+    }
+
+    /* Sidebars and Panels */
+    .sidebar-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-primary);
+    }
+
+    .panel-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 12px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    /* Hero Panel Specifics */
+    #hero-sidebar .avatar-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .hero-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--border-focus);
+    }
+
+    .hero-spec {
+      font-size: 11px;
+      color: var(--accent-gold);
+      margin-top: 2px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+      font-size: 11px;
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+    }
+
+    .stat-val {
+      font-weight: 700;
+    }
+
+    .gear-slot-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .gear-slot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px 4px;
+      text-align: center;
+      font-size: 9px;
+      color: var(--text-secondary);
+      min-height: 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .gear-slot-card.active {
+      border-color: var(--border-focus);
+      color: var(--text-primary);
+    }
+
+    /* Central Canvas Host Container */
+    #center-viewport-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
+    #canvas-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 1280px;
+      aspect-ratio: 16 / 9;
+      background: var(--bg-canvas);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: auto;
+    }
+
+    #canvas-wrapper canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Right Stacked Column */
+    #right-sidebars-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Combat Panel Specifics */
+    .skill-badge-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .skill-badge-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .skill-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .skill-name {
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 11px;
+    }
+
+    .skill-cost {
+      font-size: 9px;
+      color: var(--border-focus);
+    }
+
+    .btn-action {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      min-height: 36px;
+    }
+
+    .btn-action:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-focus);
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      border-color: #58a6ff;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #388bfd;
+    }
+
+    .btn-boss {
+      background: var(--accent-red);
+      border-color: #f85149;
+      color: #ffffff;
+    }
+
+    /* Crafting Panel Specifics */
+    .recipe-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .recipe-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .recipe-name {
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .recipe-req {
+      font-size: 9px;
+      color: var(--text-secondary);
+    }
+
+    /* Responsive Media Queries */
+    @media (max-width: 1360px) {
+      #main-content-layout {
+        grid-template-columns: 260px 1fr 290px;
+        gap: 12px;
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      #main-content-layout {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #center-viewport-container {
+        grid-column: 1 / -1;
+      }
+
+      #hero-sidebar {
+        grid-column: 1 / 2;
+      }
+
+      #right-sidebars-stack {
+        grid-column: 2 / 3;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #main-content-layout {
+        grid-template-columns: 1fr;
+        padding: 8px;
+        gap: 12px;
+      }
+
+      #center-viewport-container {
+        grid-column: 1 / 2;
+      }
+
+      #hero-sidebar {
+        grid-column: 1 / 2;
+      }
+
+      #right-sidebars-stack {
+        grid-column: 1 / 2;
+      }
+
+      .header-quick-stats {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .btn-action {
+        min-height: 44px; /* Touch target accessibility */
+      }
     }
   </style>
 </head>
 <body>
+  <div id="app-container">
+    <!-- Top Header -->
+    <header id="app-header">
+      <div class="header-branding">
+        <span class="header-logo">⏳</span>
+        <div class="header-title">Mythic Human History</div>
+        <span class="header-badge">IDLE RPG</span>
+      </div>
+      <div class="header-quick-stats">
+        <div class="quick-stat-item" id="header-era-badge" title="Active Mythic Era">
+          <span>🏛️</span>
+          <span id="quick-era-name" style="font-weight: 800; color: #ffd700;">Era of Dawn</span>
+        </div>
+        <div class="quick-stat-item" id="header-alignment-badge" title="Cosmic Force Alignment">
+          <span>🌀</span>
+          <span id="quick-alignment-name" style="color: #79c0ff;">Echoes</span>
+        </div>
+        <div class="quick-stat-item" id="header-level-badge" title="Hero Reincarnation Level">
+          <span>⭐</span>
+          <span id="quick-hero-level" style="color: #7ee787;">Level 1</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Responsive 3-Column Layout -->
+    <main id="main-content-layout">
+      <!-- Left: Hero Panel Sidebar -->
+      <aside id="hero-sidebar" class="sidebar-panel">
+        <div class="panel-header">
+          <span class="panel-title">👤 Hero Profile</span>
+          <span id="sidebar-hero-lvl" style="font-size: 10px; color: #7ee787; font-weight: bold;">LVL 1</span>
+        </div>
+        <div class="panel-body">
+          <div class="avatar-card">
+            <div class="hero-name" id="sidebar-hero-title">The Mythic Avatar</div>
+            <div class="hero-spec" id="sidebar-hero-spec">Primordial Shaman</div>
+          </div>
+
+          <!-- Hero Combat Attributes -->
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
+            <div style="font-weight: bold; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; margin-bottom: 6px;">Combat Attributes</div>
+            <div class="stat-row">
+              <span class="stat-label">Health (HP):</span>
+              <span class="stat-val" id="sb-stat-hp" style="color: #7ee787;">150 / 150</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Attack Damage:</span>
+              <span class="stat-val" id="sb-stat-dmg" style="color: #ff7b72;">15 DMG</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Defense / Armor:</span>
+              <span class="stat-val" id="sb-stat-def" style="color: #79c0ff;">0 Armor</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Critical Rate:</span>
+              <span class="stat-val" id="sb-stat-crit" style="color: #ffd700;">5.0%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Attack Interval:</span>
+              <span class="stat-val" id="sb-stat-haste" style="color: #d2a8ff;">45 frames</span>
+            </div>
+          </div>
+
+          <!-- 16-Slot Equipment Matrix Grid Preview -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-weight: bold; color: var(--text-secondary); font-size: 10px; text-transform: uppercase;">Equipment Matrix (16)</span>
+            </div>
+            <div class="gear-slot-grid" id="sidebar-gear-grid">
+              <div class="gear-slot-card" title="Head Slot">Helm</div>
+              <div class="gear-slot-card" title="Face Slot">Face</div>
+              <div class="gear-slot-card" title="Neck Slot">Neck</div>
+              <div class="gear-slot-card" title="Shoulder Slot">Shoulder</div>
+              <div class="gear-slot-card" title="Chest Slot">Chest</div>
+              <div class="gear-slot-card" title="Back Slot">Back</div>
+              <div class="gear-slot-card" title="Wrist Slot">Wrist</div>
+              <div class="gear-slot-card" title="Hands Slot">Hands</div>
+              <div class="gear-slot-card" title="Waist Slot">Waist</div>
+              <div class="gear-slot-card" title="Legs Slot">Legs</div>
+              <div class="gear-slot-card" title="Ring 1 Slot">Ring 1</div>
+              <div class="gear-slot-card" title="Ring 2 Slot">Ring 2</div>
+              <div class="gear-slot-card" title="Earring 1 Slot">Ear 1</div>
+              <div class="gear-slot-card" title="Earring 2 Slot">Ear 2</div>
+              <div class="gear-slot-card" title="Main Hand Weapon">Main</div>
+              <div class="gear-slot-card" title="Off Hand Weapon">Off</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center: Responsive PixiJS Canvas Viewport -->
+      <section id="center-viewport-container">
+        <div id="canvas-wrapper">
+          <!-- PixiJS canvas and tactical HUD will mount here -->
+        </div>
+      </section>
+
+      <!-- Right: Stacked Combat & Crafting Panels -->
+      <div id="right-sidebars-stack">
+        <!-- Combat & Skills Panel Sidebar -->
+        <aside id="combat-sidebar" class="sidebar-panel">
+          <div class="panel-header">
+            <span class="panel-title">⚔️ Combat & Tactics</span>
+            <span id="sidebar-boss-indicator" style="font-size: 10px; color: #ffd700; font-weight: bold;">WAVE COMBAT</span>
+          </div>
+          <div class="panel-body">
+            <div>
+              <div style="font-weight: bold; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; margin-bottom: 6px;">Equipped Spells & Skills</div>
+              <div class="skill-badge-list" id="sidebar-skills-list">
+                <div class="skill-badge-item">
+                  <div class="skill-meta">
+                    <span class="skill-name">⚔️ Standard Attack</span>
+                    <span class="skill-cost">Cost: 0 Energy | Physical</span>
+                  </div>
+                  <span style="font-size: 9px; color: #7ee787; font-weight: bold;">ACTIVE</span>
+                </div>
+                <div class="skill-badge-item">
+                  <div class="skill-meta">
+                    <span class="skill-name">🌋 Genesis Quake</span>
+                    <span class="skill-cost">Cost: 15 Energy | Earth</span>
+                  </div>
+                  <span style="font-size: 9px; color: #7ee787; font-weight: bold;">AUTO</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+              <button class="btn-action btn-boss" id="sidebar-summon-boss-btn">
+                💀 Summon Era Boss
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Mythic Forge & Crafting Panel Sidebar -->
+        <aside id="crafting-sidebar" class="sidebar-panel">
+          <div class="panel-header">
+            <span class="panel-title">🔨 Mythic Forge</span>
+            <span id="sidebar-mats-count" style="font-size: 10px; color: #79c0ff; font-weight: bold;">MATERIALS</span>
+          </div>
+          <div class="panel-body">
+            <div>
+              <div style="font-weight: bold; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; margin-bottom: 6px;">Era Forge Recipes</div>
+              <div style="display: flex; flex-direction: column; gap: 6px;" id="sidebar-recipes-list">
+                <div class="recipe-row">
+                  <div class="recipe-info">
+                    <span class="recipe-name" style="color: #79c0ff;">Obsidian Warclub</span>
+                    <span class="recipe-req">Cost: 40⚡ | 15 Primordial</span>
+                  </div>
+                  <span style="font-size: 9px; color: #8b949e;">[Main Hand]</span>
+                </div>
+                <div class="recipe-row">
+                  <div class="recipe-info">
+                    <span class="recipe-name" style="color: #79c0ff;">Basalt Cuirass</span>
+                    <span class="recipe-req">Cost: 65⚡ | 25 Primordial</span>
+                  </div>
+                  <span style="font-size: 9px; color: #8b949e;">[Chest]</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

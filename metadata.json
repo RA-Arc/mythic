@@ -1,6 +1,6 @@
 {
   "name": "Mythic Idle RPG",
-  "description": "An idle RPG game powered by PixiJS with hero animations, combat, boss encounters, character matrices, and equipment system.",
+  "description": "Mythic Human History Idle RPG — A 10-era mythic timeline RPG featuring ancestral memories, cosmic forces, era-energy generators, real-time tactical combat, boss battles, gear crafting, and ascension mechanics.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
