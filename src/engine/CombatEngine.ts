@@ -18,6 +18,7 @@ export class CombatEngine {
   bossDefeated: boolean = false;
   waveCounter: number = 0;
   heroRespawnTimer: number = 0;
+  spawnDelayTimer: number = 0;
 
   // Auto-combat and auto-cast toggles
   autoCastAbilities: boolean = true;
@@ -38,7 +39,7 @@ export class CombatEngine {
   }
 
   public spawnNextTarget(logger: any) {
-    if (this.activeEnemy || this.hero.hp <= 0) return null;
+    if (this.activeEnemy || this.hero.hp <= 0 || this.spawnDelayTimer > 0) return null;
 
     const eraId = this.gameState.currentEra;
     const shouldSpawnBoss = this.bossMode;
@@ -54,7 +55,7 @@ export class CombatEngine {
     }
 
     this.activeEnemy.sprite.x = 900 + Math.random() * 150;
-    this.activeEnemy.sprite.y = 300 + Math.random() * 180;
+    this.activeEnemy.sprite.y = this.activeEnemy.isFlying ? 360 : 420;
     return this.activeEnemy;
   }
 
@@ -81,15 +82,16 @@ export class CombatEngine {
     }
 
     // Companion Troops Attack Loop
-    if (this.activeEnemy && this.activeEnemy.hp > 0 && this.hero.hp > 0) {
+    if (this.activeEnemy && this.activeEnemy.hp > 0 && !this.activeEnemy.isPerishing && this.hero.hp > 0) {
       const troopDmgRelic = 1 + (this.hero.getRelicBonus("troopDamagePercent") / 100);
       this.hero.troops.forEach(troop => {
         if (troop.count > 0) {
           if (troop.attackCooldown > 0) {
             troop.attackCooldown -= delta;
           }
-          if (troop.attackCooldown <= 0 && this.activeEnemy && this.activeEnemy.hp > 0) {
+          if (troop.attackCooldown <= 0 && this.activeEnemy && this.activeEnemy.hp > 0 && !this.activeEnemy.isPerishing) {
             troop.attackCooldown = troop.attackInterval;
+            (troop as any).attackTrigger = true;
             const troopDmg = Math.floor(troop.baseDmg * troop.count * troopDmgRelic * (0.85 + Math.random() * 0.3));
             const dealt = this.activeEnemy.takeDamage(troopDmg);
             this.particles.addFloatingText(`-${dealt}`, this.activeEnemy.sprite.x + (Math.random() * 30 - 15), this.activeEnemy.sprite.y - 30, `#${troop.color.toString(16)}`, 16);
@@ -119,11 +121,28 @@ export class CombatEngine {
       return;
     }
 
-    // 3. Enemy spawning and cleanup
-    if (!this.activeEnemy || this.activeEnemy.hp <= 0) {
-      if (this.activeEnemy && this.activeEnemy.hp <= 0) {
+    // 3. Enemy defeat, perishing fade away, and clean pacing
+    if (this.activeEnemy) {
+      if (this.activeEnemy.hp <= 0 && !this.activeEnemy.isPerishing) {
+        this.activeEnemy.startPerish();
+        this.particles.spawnSoulDissolve(this.activeEnemy.sprite.x, this.activeEnemy.sprite.y);
         this.processVictory(logger, onLootCallback);
+        this.spawnDelayTimer = 40; // Breather delay before next enemy to prevent clutter
+      } else if (this.activeEnemy.isPerishing) {
+        const finished = this.activeEnemy.updatePerish(delta);
+        if (finished) {
+          this.activeEnemy.sprite.parent?.removeChild(this.activeEnemy.sprite);
+          this.activeEnemy.sprite.destroy();
+          this.activeEnemy = null;
+        }
       }
+    }
+
+    if (this.spawnDelayTimer > 0) {
+      this.spawnDelayTimer -= delta;
+    }
+
+    if (!this.activeEnemy || this.activeEnemy.isPerishing || this.activeEnemy.hp <= 0) {
       return;
     }
 
@@ -228,10 +247,11 @@ export class CombatEngine {
     );
 
     this.hero.attackCooldown = this.hero.getAttackInterval();
+    return { isCrit, ability: abilityToUse, actualDmg };
   }
 
   public executeEnemyAttack(logger: any) {
-    if (!this.activeEnemy || this.activeEnemy.hp <= 0 || this.hero.hp <= 0) return;
+    if (!this.activeEnemy || this.activeEnemy.hp <= 0 || this.hero.hp <= 0) return null;
 
     const traitBonus = this.gameState.getTraitBonus();
     const ed = Math.floor(this.activeEnemy.baseDmg * (0.85 + Math.random() * 0.3));
@@ -239,10 +259,8 @@ export class CombatEngine {
     const mitigated = this.hero.takeDamage(ed, traitBonus.defenseBonus || 0);
     this.particles.addFloatingText(`-${mitigated}`, this.hero.sprite.x, this.hero.sprite.y - 40, "#ff4444", 20);
 
-    if (this.activeEnemy.isBoss) {
-      this.activeEnemy.setBossAttackState(true);
-      setTimeout(() => this.activeEnemy?.setBossAttackState(false), 300);
-    }
+    this.activeEnemy.setBossAttackState(true);
+    setTimeout(() => this.activeEnemy?.setBossAttackState(false), 300);
 
     logger.printLine(`${this.activeEnemy.name} strikes you for ${mitigated} damage.`, "#ff6666");
 
@@ -261,6 +279,13 @@ export class CombatEngine {
     const isBoss = enemy.isBoss;
     const eraId = this.gameState.currentEra;
     const eraInfo = ERA_DATA[eraId];
+
+    if (isBoss) {
+      soundEngine.playExplosion(true);
+    } else {
+      soundEngine.playEnemyDeath();
+    }
+    soundEngine.playGoldPickup();
 
     this.gameState.stats.totalKills += 1;
     if (isBoss) this.gameState.stats.bossKills += 1;
@@ -334,7 +359,6 @@ export class CombatEngine {
       }
     }
 
-    this.activeEnemy = null;
     this.gameState.save();
   }
 }

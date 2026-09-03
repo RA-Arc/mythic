@@ -1,7 +1,11 @@
 export class SoundEngine {
   private ctx: AudioContext | null = null;
   private muted: boolean = false;
-  private volume: number = 0.3;
+  private volume: number = 0.35;
+  private audioBufferCache: Map<string, AudioBuffer> = new Map();
+  private pendingLoads: Map<string, Promise<AudioBuffer | null>> = new Map();
+  private bgMusicAudio: HTMLAudioElement | null = null;
+  private musicPlaying: boolean = false;
 
   constructor() {
     // Initialized lazily on first user interaction
@@ -15,12 +19,15 @@ export class SoundEngine {
       }
     }
     if (this.ctx && this.ctx.state === "suspended") {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
     }
   }
 
   public toggleMute(): boolean {
     this.muted = !this.muted;
+    if (this.bgMusicAudio) {
+      this.bgMusicAudio.muted = this.muted;
+    }
     return this.muted;
   }
 
@@ -28,58 +35,185 @@ export class SoundEngine {
     return this.muted;
   }
 
+  public async playDepthsSound(soundName: string, volScale: number = 1.0): Promise<boolean> {
+    if (this.muted) return false;
+    this.initCtx();
+    if (!this.ctx) return false;
+
+    const url = `assets/depths/sounds/${soundName}.wav`;
+    try {
+      let buffer = this.audioBufferCache.get(url);
+      if (!buffer) {
+        if (!this.pendingLoads.has(url)) {
+          const loadPromise = fetch(url)
+            .then(res => res.arrayBuffer())
+            .then(arr => this.ctx!.decodeAudioData(arr))
+            .catch(() => null);
+          this.pendingLoads.set(url, loadPromise);
+        }
+        buffer = (await this.pendingLoads.get(url)) || undefined;
+        if (buffer) {
+          this.audioBufferCache.set(url, buffer);
+        }
+      }
+
+      if (buffer && this.ctx) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.setValueAtTime(this.volume * volScale, this.ctx.currentTime);
+        source.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+        source.start(0);
+        return true;
+      }
+    } catch {
+      // Fallback
+    }
+    return false;
+  }
+
+  public startDepthsMusic() {
+    if (this.musicPlaying || this.muted) return;
+    try {
+      if (!this.bgMusicAudio) {
+        this.bgMusicAudio = new Audio("assets/depths/sounds/depths2_low.wav");
+        this.bgMusicAudio.loop = true;
+        this.bgMusicAudio.volume = 0.22;
+      }
+      this.bgMusicAudio.play().then(() => {
+        this.musicPlaying = true;
+      }).catch(() => {
+        // Autoplay policy waiting for user click
+      });
+    } catch {
+      // Ignore
+    }
+  }
+
+  public toggleMusic(): boolean {
+    if (!this.bgMusicAudio) {
+      this.startDepthsMusic();
+      return true;
+    }
+    if (this.bgMusicAudio.paused) {
+      this.bgMusicAudio.play().catch(() => {});
+      this.musicPlaying = true;
+      return true;
+    } else {
+      this.bgMusicAudio.pause();
+      this.musicPlaying = false;
+      return false;
+    }
+  }
+
+  public isMusicPlaying(): boolean {
+    return this.musicPlaying && !!this.bgMusicAudio && !this.bgMusicAudio.paused;
+  }
+
   public playHit() {
     if (this.muted) return;
-    this.initCtx();
-    if (!this.ctx) return;
+    this.playDepthsSound("sndAttack", 0.9).then(played => {
+      if (played) return;
+      this.synthHit();
+    });
+  }
 
-    try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      const now = this.ctx.currentTime;
-
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(140, now);
-      osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
-
-      gain.gain.setValueAtTime(this.volume * 0.4, now);
-      gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.08);
-    } catch {
-      // Safe audio fallback
-    }
+  public playStab() {
+    if (this.muted) return;
+    this.playDepthsSound("sndAttackStab", 0.9).then(played => {
+      if (played) return;
+      this.synthHit();
+    });
   }
 
   public playCrit() {
     if (this.muted) return;
+    this.playDepthsSound("sndLargeAttack", 1.2).then(played => {
+      if (played) return;
+      this.synthCrit();
+    });
+  }
+
+  public playEnemyDeath() {
+    if (this.muted) return;
+    this.playDepthsSound("sndDeath", 1.0);
+  }
+
+  public playPlayerHurt() {
+    if (this.muted) return;
+    this.playDepthsSound("sndPlayerHurt", 1.0);
+  }
+
+  public playGoldPickup() {
+    if (this.muted) return;
+    this.playDepthsSound("sndPickupGold", 1.1);
+  }
+
+  public playBuy() {
+    if (this.muted) return;
+    this.playDepthsSound("sndBuy", 1.0);
+  }
+
+  public playExplosion(large: boolean = false) {
+    if (this.muted) return;
+    this.playDepthsSound(large ? "sndExplosion" : "sndSmallExplosion", 1.0).then(played => {
+      if (played) return;
+      this.synthHit();
+    });
+  }
+
+  public playShockwave() {
+    if (this.muted) return;
+    this.playDepthsSound("sndShockwave", 1.0);
+  }
+
+  public playArrow() {
+    if (this.muted) return;
+    this.playDepthsSound("sndArrow", 0.85);
+  }
+
+  public playAcidShot() {
+    if (this.muted) return;
+    this.playDepthsSound("sndAcidShot", 0.85);
+  }
+
+  private synthHit() {
     this.initCtx();
     if (!this.ctx) return;
-
     try {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       const now = this.ctx.currentTime;
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+      gain.gain.setValueAtTime(this.volume * 0.4, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } catch {}
+  }
 
+  private synthCrit() {
+    this.initCtx();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const now = this.ctx.currentTime;
       osc.type = "square";
       osc.frequency.setValueAtTime(320, now);
       osc.frequency.exponentialRampToValueAtTime(70, now + 0.15);
-
       gain.gain.setValueAtTime(this.volume * 0.7, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-
       osc.start(now);
       osc.stop(now + 0.15);
-    } catch {
-      // Safe audio fallback
-    }
+    } catch {}
   }
 
   public playSpell(type: string = "fire") {
@@ -259,6 +393,14 @@ export class SoundEngine {
     } catch {
       // Safe audio fallback
     }
+  }
+
+  public playVictoryFanfare() {
+    this.playDepthsSound("sndVictoryFanfare");
+  }
+
+  public playBatiliskWing() {
+    this.playDepthsSound("sndBatiliskWing");
   }
 
   public playBossRoar() {

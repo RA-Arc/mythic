@@ -7,6 +7,19 @@
   <meta property="og:title" content="Mythic Idle RPG" />
   <meta property="og:description" content="Mythic Human History Idle RPG — A 10-era mythic timeline RPG featuring ancestral memories, cosmic forces, era-energy generators, real-time tactical combat, boss battles, gear crafting, and ascension mechanics." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // Intercept and silence benign ResizeObserver notifications
+    window.addEventListener('error', function (e) {
+      if (e.message && (
+        e.message.indexOf('ResizeObserver loop') !== -1 ||
+        e.message.indexOf('undelivered notifications') !== -1
+      )) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        return false;
+      }
+    });
+  </script>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -114,125 +127,72 @@
       border-radius: 4px;
     }
 
-    /* 3-Column Responsive Body Layout */
+    /* Maximized Main Game Screen Layout */
     #main-content-layout {
-      display: grid;
-      grid-template-columns: 290px 1fr 330px;
-      gap: 16px;
-      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 10px 16px 20px 16px;
       flex: 1;
-      align-items: start;
       width: 100%;
     }
 
-    /* Sidebars and Panels */
-    .sidebar-panel {
+    /* Screen Dock Navigation Toolbar */
+    #screen-dock-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      max-width: 1360px;
+      overflow-x: auto;
+      padding: 6px 8px;
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      scrollbar-width: thin;
     }
 
-    .panel-header {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border-color);
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .panel-title {
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-primary);
-    }
-
-    .panel-body {
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      font-size: 12px;
-      max-height: calc(100vh - 120px);
-      overflow-y: auto;
-    }
-
-    /* Hero Panel Specifics */
-    #hero-sidebar .avatar-card {
+    .quick-nav-btn {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .hero-name {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--border-focus);
-    }
-
-    .hero-spec {
+      color: var(--text-primary);
+      padding: 6px 12px;
       font-size: 11px;
-      color: var(--accent-gold);
-      margin-top: 2px;
-    }
-
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.5);
-      font-size: 11px;
-    }
-
-    .stat-row:last-child {
-      border-bottom: none;
-    }
-
-    .stat-label {
-      color: var(--text-secondary);
-    }
-
-    .stat-val {
       font-weight: 700;
-    }
-
-    .gear-slot-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-top: 6px;
-    }
-
-    .gear-slot-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 6px 4px;
-      text-align: center;
-      font-size: 9px;
-      color: var(--text-secondary);
-      min-height: 44px;
+      border-radius: 6px;
+      cursor: pointer;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
       align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      user-select: none;
     }
 
-    .gear-slot-card.active {
+    .quick-nav-btn:hover {
+      background: #21262d;
       border-color: var(--border-focus);
-      color: var(--text-primary);
+      color: #58a6ff;
+      transform: translateY(-1px);
+    }
+
+    .quick-nav-btn:active {
+      transform: translateY(0);
+    }
+
+    .quick-nav-btn.btn-highlight {
+      border-color: #388bfd;
+      background: rgba(56, 139, 253, 0.15);
+      color: #79c0ff;
+    }
+
+    .quick-nav-btn.btn-gold {
+      border-color: #d29922;
+      background: rgba(210, 153, 34, 0.15);
+      color: #ffd700;
     }
 
     /* Central Canvas Host Container */
@@ -242,19 +202,20 @@
       gap: 12px;
       align-items: center;
       justify-content: flex-start;
-      min-width: 0;
+      width: 100%;
+      max-width: 1360px;
     }
 
     #canvas-wrapper {
       position: relative;
       width: 100%;
-      max-width: 1280px;
+      max-width: 1360px;
       aspect-ratio: 16 / 9;
       background: var(--bg-canvas);
       border: 2px solid var(--border-color);
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -267,11 +228,15 @@
       display: block;
     }
 
-    /* Right Stacked Column */
-    #right-sidebars-stack {
+    /* Sidebars and Panels (Legacy / Modal styling) */
+    .sidebar-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     /* Combat Panel Specifics */
@@ -451,147 +416,83 @@
           <span>⭐</span>
           <span id="quick-hero-level" style="color: #7ee787;">Level 1</span>
         </div>
+        <button id="header-surge-chi-btn" class="quick-action-pill" style="background: rgba(255, 215, 0, 0.15); border: 1px solid #d29922; color: #ffd700; padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          <span>⚡</span> <span>ARC ANGEL</span>
+        </button>
+        <button id="header-summon-boss-btn" class="quick-action-pill" style="background: rgba(218, 54, 51, 0.2); border: 1px solid #f85149; color: #ff7b72; padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          <span>💀</span> <span>SUMMON BOSS</span>
+        </button>
       </div>
     </header>
 
-    <!-- Main Responsive 3-Column Layout -->
+    <!-- Main Maximized Single-Screen Layout -->
     <main id="main-content-layout">
-      <!-- Left: Hero Panel Sidebar -->
-      <aside id="hero-sidebar" class="sidebar-panel">
-        <div class="panel-header">
-          <span class="panel-title">👤 Hero Profile</span>
-          <span id="sidebar-hero-lvl" style="font-size: 10px; color: #7ee787; font-weight: bold;">LVL 1</span>
-        </div>
-        <div class="panel-body">
-          <div class="avatar-card">
-            <div class="hero-name" id="sidebar-hero-title">The Mythic Avatar</div>
-            <div class="hero-spec" id="sidebar-hero-spec">Primordial Shaman</div>
-          </div>
+      <!-- Screen Dock Navigation (Click to open any screen: Equipment, Inventory, Mini-Ninjas, Forge, etc.) -->
+      <nav id="screen-dock-nav" aria-label="Game Screens Navigation">
+        <button class="quick-nav-btn btn-highlight" data-tab="hero" title="View Hero Profile, Stats & 16-Slot Equipment">
+          <span>👤</span>
+          <span>Hero & Equipment</span>
+        </button>
+        <button class="quick-nav-btn" data-tab="hero" title="View Backpack & Inventory Items">
+          <span>🎒</span>
+          <span>Inventory</span>
+        </button>
+        <button class="quick-nav-btn" data-tab="combat" title="View Combat Tactics, Spells & Boss Mode">
+          <span>⚡</span>
+          <span>Battle & Skills</span>
+        </button>
+        <button class="quick-nav-btn" data-tab="forge" title="Craft Mythic Gear with Era Materials">
+          <span>🔨</span>
+          <span>Mythic Forge</span>
+        </button>
+        <button class="quick-nav-btn btn-highlight" data-tab="rogue" title="Manage & Expand Mini-Ninja Squad">
+          <span>⚔️</span>
+          <span>Mini-Ninja Squad</span>
+        </button>
+        <button class="quick-nav-btn btn-gold" data-tab="chi" title="Celestial Chi Force & Transformations">
+          <span>🪶</span>
+          <span>Chi / Arc Angel</span>
+        </button>
+        <button class="quick-nav-btn" data-tab="investigation" title="Era Investigation & Secrets">
+          <span>🔍</span>
+          <span>Mysteries</span>
+        </button>
+        <button class="quick-nav-btn" data-tab="timeline" title="Historical Eras & Milestones">
+          <span>🗺️</span>
+          <span>Timeline</span>
+        </button>
+        <button class="quick-nav-btn" data-tab="memories" title="Ancestral Memories & Traits">
+          <span>🧠</span>
+          <span>Memories</span>
+        </button>
+        <button class="quick-nav-btn" data-tab="lore" title="Historical Lore Codex">
+          <span>📜</span>
+          <span>Lore</span>
+        </button>
+        <button class="quick-nav-btn btn-gold" data-tab="ascension" title="Ascend Hero & Manage Saves">
+          <span>🌌</span>
+          <span>Ascension</span>
+        </button>
+      </nav>
 
-          <!-- Hero Combat Attributes -->
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
-            <div style="font-weight: bold; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; margin-bottom: 6px;">Combat Attributes</div>
-            <div class="stat-row">
-              <span class="stat-label">Health (HP):</span>
-              <span class="stat-val" id="sb-stat-hp" style="color: #7ee787;">150 / 150</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Attack Damage:</span>
-              <span class="stat-val" id="sb-stat-dmg" style="color: #ff7b72;">15 DMG</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Defense / Armor:</span>
-              <span class="stat-val" id="sb-stat-def" style="color: #79c0ff;">0 Armor</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Critical Rate:</span>
-              <span class="stat-val" id="sb-stat-crit" style="color: #ffd700;">5.0%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Attack Interval:</span>
-              <span class="stat-val" id="sb-stat-haste" style="color: #d2a8ff;">45 frames</span>
-            </div>
-          </div>
-
-          <!-- 16-Slot Equipment Matrix Grid Preview -->
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-weight: bold; color: var(--text-secondary); font-size: 10px; text-transform: uppercase;">Equipment Matrix (16)</span>
-            </div>
-            <div class="gear-slot-grid" id="sidebar-gear-grid">
-              <div class="gear-slot-card" title="Head Slot">Helm</div>
-              <div class="gear-slot-card" title="Face Slot">Face</div>
-              <div class="gear-slot-card" title="Neck Slot">Neck</div>
-              <div class="gear-slot-card" title="Shoulder Slot">Shoulder</div>
-              <div class="gear-slot-card" title="Chest Slot">Chest</div>
-              <div class="gear-slot-card" title="Back Slot">Back</div>
-              <div class="gear-slot-card" title="Wrist Slot">Wrist</div>
-              <div class="gear-slot-card" title="Hands Slot">Hands</div>
-              <div class="gear-slot-card" title="Waist Slot">Waist</div>
-              <div class="gear-slot-card" title="Legs Slot">Legs</div>
-              <div class="gear-slot-card" title="Ring 1 Slot">Ring 1</div>
-              <div class="gear-slot-card" title="Ring 2 Slot">Ring 2</div>
-              <div class="gear-slot-card" title="Earring 1 Slot">Ear 1</div>
-              <div class="gear-slot-card" title="Earring 2 Slot">Ear 2</div>
-              <div class="gear-slot-card" title="Main Hand Weapon">Main</div>
-              <div class="gear-slot-card" title="Off Hand Weapon">Off</div>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Center: Responsive PixiJS Canvas Viewport -->
+      <!-- Center: Maximized Responsive PixiJS Canvas Viewport -->
       <section id="center-viewport-container">
         <div id="canvas-wrapper">
-          <!-- PixiJS canvas and tactical HUD will mount here -->
+          <!-- PixiJS canvas and tactical HUD mount here -->
         </div>
       </section>
 
-      <!-- Right: Stacked Combat & Crafting Panels -->
-      <div id="right-sidebars-stack">
-        <!-- Combat & Skills Panel Sidebar -->
-        <aside id="combat-sidebar" class="sidebar-panel">
-          <div class="panel-header">
-            <span class="panel-title">⚔️ Combat & Tactics</span>
-            <span id="sidebar-boss-indicator" style="font-size: 10px; color: #ffd700; font-weight: bold;">WAVE COMBAT</span>
-          </div>
-          <div class="panel-body">
-            <div>
-              <div style="font-weight: bold; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; margin-bottom: 6px;">Equipped Spells & Skills</div>
-              <div class="skill-badge-list" id="sidebar-skills-list">
-                <div class="skill-badge-item">
-                  <div class="skill-meta">
-                    <span class="skill-name">⚔️ Standard Attack</span>
-                    <span class="skill-cost">Cost: 0 Energy | Physical</span>
-                  </div>
-                  <span style="font-size: 9px; color: #7ee787; font-weight: bold;">ACTIVE</span>
-                </div>
-                <div class="skill-badge-item">
-                  <div class="skill-meta">
-                    <span class="skill-name">🌋 Genesis Quake</span>
-                    <span class="skill-cost">Cost: 15 Energy | Earth</span>
-                  </div>
-                  <span style="font-size: 9px; color: #7ee787; font-weight: bold;">AUTO</span>
-                </div>
-              </div>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
-              <button class="btn-action btn-boss" id="sidebar-summon-boss-btn">
-                💀 Summon Era Boss
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        <!-- Mythic Forge & Crafting Panel Sidebar -->
-        <aside id="crafting-sidebar" class="sidebar-panel">
-          <div class="panel-header">
-            <span class="panel-title">🔨 Mythic Forge</span>
-            <span id="sidebar-mats-count" style="font-size: 10px; color: #79c0ff; font-weight: bold;">MATERIALS</span>
-          </div>
-          <div class="panel-body">
-            <div>
-              <div style="font-weight: bold; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; margin-bottom: 6px;">Era Forge Recipes</div>
-              <div style="display: flex; flex-direction: column; gap: 6px;" id="sidebar-recipes-list">
-                <div class="recipe-row">
-                  <div class="recipe-info">
-                    <span class="recipe-name" style="color: #79c0ff;">Obsidian Warclub</span>
-                    <span class="recipe-req">Cost: 40⚡ | 15 Primordial</span>
-                  </div>
-                  <span style="font-size: 9px; color: #8b949e;">[Main Hand]</span>
-                </div>
-                <div class="recipe-row">
-                  <div class="recipe-info">
-                    <span class="recipe-name" style="color: #79c0ff;">Basalt Cuirass</span>
-                    <span class="recipe-req">Cost: 65⚡ | 25 Primordial</span>
-                  </div>
-                  <span style="font-size: 9px; color: #8b949e;">[Chest]</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
+      <!-- Off-screen legacy data nodes for live telemetry sync -->
+      <div id="legacy-sidebars" style="display: none;" aria-hidden="true">
+        <span id="sidebar-hero-lvl">LVL 1</span>
+        <span id="sidebar-hero-spec">Primordial Shaman</span>
+        <span id="sb-stat-hp">150 / 150</span>
+        <span id="sb-stat-dmg">15 DMG</span>
+        <span id="sb-stat-def">0 Armor</span>
+        <span id="sb-stat-crit">5.0%</span>
+        <span id="sb-stat-haste">45 frames</span>
+        <span id="sidebar-boss-indicator">WAVE COMBAT</span>
+        <button id="sidebar-summon-boss-btn"></button>
       </div>
     </main>
   </div>

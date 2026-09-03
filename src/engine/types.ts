@@ -136,12 +136,14 @@ export interface EraDefinition {
   bossHp: number;
   bossDamage: number;
   bossAffinity: MythicAffinity;
+  bossSpriteName?: string;
   enemies: {
     name: string;
     hpMultiplier: number;
     dmgMultiplier: number;
     affinity: MythicAffinity;
     tint: number;
+    spriteName?: string;
   }[];
   specializations: string[];
 }
@@ -204,6 +206,9 @@ export interface CompanionTroop {
   name: string;
   role: "melee" | "ranged" | "caster" | "support";
   count: number;
+  maxCapacity: number; // Initially 1 per category
+  hardCap: number; // Max capacity ceiling (e.g. 2 or 3) to prevent screen clutter
+  expandCostSoulGems: number; // Soul Diamond cost to expand slot capacity
   level: number;
   hireCostEnergy: number;
   upgradeCostSoulGems: number;
@@ -214,6 +219,27 @@ export interface CompanionTroop {
   yOffset: number;
   icon: string;
   color: number;
+  spriteName?: string;
+  unlocked?: boolean;
+}
+
+export interface DepthsInvestment {
+  id: string;
+  name: string;
+  costGold: number;
+  incomePerSec: number;
+  owned: number;
+  description: string;
+  icon: string;
+}
+
+export interface UnderworldDebtState {
+  currentDebt: number;
+  initialDebt: number;
+  totalRepaid: number;
+  interestRatePercent: number;
+  investments: DepthsInvestment[];
+  unlockedPerks: string[];
 }
 
 export interface InvestigationClue {

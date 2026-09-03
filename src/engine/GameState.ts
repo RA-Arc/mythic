@@ -1,4 +1,4 @@
-import { EraId, CosmicForce, RPGItem, ChiSkillNode, RogueRelic, CompanionTroop, EraInvestigation } from "./types";
+import { EraId, CosmicForce, RPGItem, ChiSkillNode, RogueRelic, CompanionTroop, EraInvestigation, UnderworldDebtState, DepthsInvestment } from "./types";
 import { ERA_DATA, ERA_ORDER } from "./data/eras";
 import { ANCESTRAL_MEMORIES } from "./data/memories";
 import { COSMIC_TRAIT_TREE } from "./data/traits";
@@ -112,6 +112,61 @@ export class GameState {
   relics: RogueRelic[] = JSON.parse(JSON.stringify(INITIAL_ROGUE_RELICS));
   troops: CompanionTroop[] = JSON.parse(JSON.stringify(INITIAL_COMPANION_TROOPS));
 
+  underworldDebt: UnderworldDebtState = {
+    currentDebt: 5000,
+    initialDebt: 5000,
+    totalRepaid: 0,
+    interestRatePercent: 0.05,
+    investments: [
+      {
+        id: "invest_mine_cart",
+        name: "Underworld Ore Cart",
+        costGold: 120,
+        incomePerSec: 4,
+        owned: 0,
+        description: "Hauls raw stygian mineral ore continuously from the underworld shaft.",
+        icon: "⛏️"
+      },
+      {
+        id: "invest_alchemist_vat",
+        name: "Alchemical Slime Vat",
+        costGold: 450,
+        incomePerSec: 18,
+        owned: 0,
+        description: "Transmutes corrosive bogslium essence into marketable stygian coins.",
+        icon: "🧪"
+      },
+      {
+        id: "invest_batilisk_roost",
+        name: "Batilisk Air Roost",
+        costGold: 1600,
+        incomePerSec: 65,
+        owned: 0,
+        description: "Dispatches trained winged batilisks to scour the caverns for forgotten treasure.",
+        icon: "🦇"
+      },
+      {
+        id: "invest_minotaur_forge",
+        name: "Minotaur Armory Guild",
+        costGold: 6000,
+        incomePerSec: 260,
+        owned: 0,
+        description: "Produces master-crafted underworld war relics for wealthy planar collectors.",
+        icon: "⚒️"
+      },
+      {
+        id: "invest_dragon_horde",
+        name: "Dragon Hoard Syndicate",
+        costGold: 25000,
+        incomePerSec: 1200,
+        owned: 0,
+        description: "Invests directly in the slumbering Wyrm's treasury for massive yield.",
+        icon: "🐉"
+      }
+    ],
+    unlockedPerks: []
+  };
+
   offlineGains: { seconds: number; energy: number; materials: number } | null = null;
 
   constructor() {
@@ -143,10 +198,68 @@ export class GameState {
       }
     }
 
+    // Underworld Passive Investments Yield (Debts in the Depths)
+    let underworldYield = 0;
+    for (const inv of this.underworldDebt.investments) {
+      if (inv.owned > 0) {
+        underworldYield += inv.incomePerSec * inv.owned;
+      }
+    }
+    if (underworldYield > 0) {
+      energyGained += underworldYield;
+    }
+
     this.currencies.eraEnergy += energyGained;
     this.stats.totalEraEnergyEarned += energyGained;
 
     return { energyGained, materialsGained };
+  }
+
+  repayUnderworldDebt(amount: number): boolean {
+    const toPay = Math.min(amount, this.underworldDebt.currentDebt);
+    if (toPay <= 0) return false;
+    if (this.currencies.eraEnergy < toPay) return false;
+
+    this.currencies.eraEnergy -= toPay;
+    this.underworldDebt.currentDebt -= toPay;
+    this.underworldDebt.totalRepaid += toPay;
+
+    const repaidPct = (this.underworldDebt.totalRepaid / this.underworldDebt.initialDebt) * 100;
+    if (repaidPct >= 25 && !this.underworldDebt.unlockedPerks.includes("perk_25")) {
+      this.underworldDebt.unlockedPerks.push("perk_25");
+      soundEngine.playLevelUp();
+    }
+    if (repaidPct >= 50 && !this.underworldDebt.unlockedPerks.includes("perk_50")) {
+      this.underworldDebt.unlockedPerks.push("perk_50");
+      soundEngine.playLevelUp();
+    }
+    if (repaidPct >= 75 && !this.underworldDebt.unlockedPerks.includes("perk_75")) {
+      this.underworldDebt.unlockedPerks.push("perk_75");
+      soundEngine.playLevelUp();
+    }
+    if (this.underworldDebt.currentDebt <= 0 && !this.underworldDebt.unlockedPerks.includes("perk_100")) {
+      this.underworldDebt.unlockedPerks.push("perk_100");
+      soundEngine.playVictoryFanfare();
+    } else {
+      soundEngine.playGoldPickup();
+    }
+
+    this.save();
+    return true;
+  }
+
+  buyDepthsInvestment(investmentId: string): boolean {
+    const invest = this.underworldDebt.investments.find((i: DepthsInvestment) => i.id === investmentId);
+    if (!invest) return false;
+    if (this.currencies.eraEnergy < invest.costGold) return false;
+
+    this.currencies.eraEnergy -= invest.costGold;
+    invest.owned += 1;
+    invest.costGold = Math.floor(invest.costGold * 1.15);
+
+    soundEngine.playCraft();
+    this.save();
+    return true;
   }
 
   upgradeGenerator(eraId: EraId): boolean {
@@ -349,14 +462,48 @@ export class GameState {
   hireTroop(troopId: string, hero: any): boolean {
     const troop = this.troops.find(t => t.id === troopId);
     if (!troop) return false;
+
+    // Check category slot capacity limit
+    const currentCap = troop.maxCapacity || 1;
+    if (troop.count >= currentCap) {
+      return false;
+    }
+
+    // Global squad limit: max 8 companions total to keep combat clean
+    const totalCount = this.troops.reduce((acc, t) => acc + (t.count || 0), 0);
+    if (totalCount >= 8) {
+      return false;
+    }
+
     if (this.currencies.eraEnergy < troop.hireCostEnergy) return false;
 
     this.currencies.eraEnergy -= troop.hireCostEnergy;
     troop.count += 1;
-    troop.hireCostEnergy = Math.floor(troop.hireCostEnergy * 1.45 + 25);
+    troop.hireCostEnergy = Math.floor(troop.hireCostEnergy * 1.5 + 30);
     hero.troops = this.troops;
 
     soundEngine.playCraft();
+    this.save();
+    return true;
+  }
+
+  expandTroopCapacity(troopId: string, hero: any): boolean {
+    const troop = this.troops.find(t => t.id === troopId);
+    if (!troop) return false;
+
+    const currentCap = troop.maxCapacity || 1;
+    const hardCap = troop.hardCap || 2;
+    if (currentCap >= hardCap) return false;
+
+    const cost = troop.expandCostSoulGems || 3;
+    if (hero.soulDiamonds < cost) return false;
+
+    hero.soulDiamonds -= cost;
+    troop.maxCapacity = currentCap + 1;
+    troop.expandCostSoulGems = Math.floor(cost * 1.8 + 2);
+    hero.troops = this.troops;
+
+    soundEngine.playLevelUp();
     this.save();
     return true;
   }

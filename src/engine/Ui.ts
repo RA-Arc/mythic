@@ -98,6 +98,7 @@ export function createMythicUI(
     | "hero"
     | "chi"
     | "rogue"
+    | "debts"
     | "investigation"
     | "combat"
     | "timeline"
@@ -143,6 +144,23 @@ export function createMythicUI(
         </div>
         <div style="font-size: 11px; color: #d2a8ff;" title="Soul Diamonds for Relic & Troop Meta-Upgrades">
           <span>💎 <b>${hero.soulDiamonds}</b> Soul Gems</span>
+        </div>
+        <div style="height: 18px; width: 1px; background: #30363d;"></div>
+        <!-- Underworld Debt Pill -->
+        <div id="quick-debt-pill" style="
+          font-size: 11px;
+          color: ${gameState.underworldDebt.currentDebt > 0 ? '#ff7b72' : '#7ee787'};
+          background: ${gameState.underworldDebt.currentDebt > 0 ? 'rgba(255, 123, 114, 0.12)' : 'rgba(46, 160, 67, 0.15)'};
+          border: 1px solid ${gameState.underworldDebt.currentDebt > 0 ? '#ff7b72' : '#2ea043'};
+          padding: 2px 7px;
+          border-radius: 4px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        " title="Debts in the Depths — Manage Underworld Debt & Summoned Minions">
+          <span>🪙</span>
+          <span><b>${gameState.underworldDebt.currentDebt > 0 ? `${gameState.underworldDebt.currentDebt.toLocaleString()} Debt` : 'DEBT FREE!'}</b></span>
         </div>
       </div>
 
@@ -201,6 +219,13 @@ export function createMythicUI(
       if (activeTab) renderModalContent();
     });
 
+    topBar.querySelector("#quick-debt-pill")?.addEventListener("click", () => {
+      activeTab = "debts";
+      modalWindow.style.display = "flex";
+      renderModalContent();
+      renderNavBar();
+    });
+
     topBar.querySelector("#quick-boss-toggle")?.addEventListener("click", () => {
       combatEngine.bossMode = !combatEngine.bossMode;
       if (combatEngine.bossMode && combatEngine.activeEnemy && !combatEngine.activeEnemy.isBoss) {
@@ -221,6 +246,7 @@ export function createMythicUI(
       { id: "hero", label: "HERO & GEAR", icon: "👤" },
       { id: "chi", label: "ARC ANGEL & CHI", icon: "🪶" },
       { id: "rogue", label: "ROGUE TROOPS & RELICS", icon: "⚔️" },
+      { id: "debts", label: "UNDERWORLD DEBT", icon: "🪙" },
       { id: "investigation", label: "ERA INVESTIGATION", icon: "🔍" },
       { id: "combat", label: "BATTLE & SKILLS", icon: "⚡" },
       { id: "timeline", label: "ERA TIMELINE", icon: "🗺️" },
@@ -569,47 +595,81 @@ export function createMythicUI(
 
     // 3. ROGUE WITH THE DEAD TAB (Troops & Relics)
     else if (activeTab === "rogue") {
-      headerTitle = `⚔️ ROGUE CRUSADE & COMPANION TROOPS — [${Math.floor(hero.distanceMeters)}m MARCHED]`;
+      headerTitle = `⚔️ ROGUE CRUSADE & MINI-NINJA SQUAD — [${Math.floor(hero.distanceMeters)}m MARCHED]`;
+
+      const totalActiveSquad = gameState.troops.reduce((acc, t) => acc + (t.count || 0), 0);
 
       const troopCards = gameState.troops
         .map(t => {
-          const canHire = gameState.currencies.eraEnergy >= t.hireCostEnergy;
+          const cap = t.maxCapacity || 1;
+          const hardCap = t.hardCap || 2;
+          const expandCost = t.expandCostSoulGems || 3;
+          const atCategoryCap = t.count >= cap;
+          const canExpand = hero.soulDiamonds >= expandCost && cap < hardCap;
+          const canHire = gameState.currencies.eraEnergy >= t.hireCostEnergy && !atCategoryCap && totalActiveSquad < 8;
           const canUpgrade = hero.soulDiamonds >= t.upgradeCostSoulGems;
+
           return `
           <div style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display:flex; align-items:center; gap:10px;">
               <span style="font-size: 26px;">${t.icon}</span>
               <div>
-                <div style="font-weight: bold; color: #${t.color.toString(16)}; font-size: 12px;">${t.name} <span style="color:#ffd700; font-size:11px;">(Count: ${t.count} | Lv ${t.level})</span></div>
-                <div style="font-size: 10px; color: #c9d1d9;">Class Role: ${t.role.toUpperCase()}</div>
-                <div style="font-size: 10px; color: #7ee787; margin-top: 2px;">Dmg per troop: ${t.baseDmg} DMG | Interval: ${(t.attackInterval / 60).toFixed(1)}s</div>
+                <div style="font-weight: bold; color: #${t.color.toString(16)}; font-size: 12px;">
+                  ${t.name}
+                  <span style="color:#ffd700; font-size:11px; margin-left: 4px;">(Slots: ${t.count}/${cap} | Hard Cap: ${hardCap})</span>
+                </div>
+                <div style="font-size: 10px; color: #c9d1d9;">Role: ${t.role.toUpperCase()} (Mini Ninja Unit) | Lv ${t.level}</div>
+                <div style="font-size: 10px; color: #7ee787; margin-top: 2px;">Dmg: ${t.baseDmg} DMG | Interval: ${(t.attackInterval / 60).toFixed(1)}s</div>
               </div>
             </div>
-            <div style="display:flex; gap:6px;">
-              <button class="hire-troop-btn" data-id="${t.id}" style="
-                background: ${canHire ? '#1f6feb' : '#21262d'};
-                border: 1px solid ${canHire ? '#58a6ff' : '#30363d'};
-                color: ${canHire ? '#fff' : '#6e7681'};
-                padding: 4px 8px;
-                font-size: 10px;
-                font-weight: bold;
-                border-radius: 4px;
-                cursor: ${canHire ? 'pointer' : 'not-allowed'};
-              ">
-                RECRUIT (+1) [⚡${t.hireCostEnergy}]
-              </button>
-              <button class="upgrade-troop-btn" data-id="${t.id}" style="
-                background: ${canUpgrade ? '#8957e5' : '#21262d'};
-                border: 1px solid ${canUpgrade ? '#d2a8ff' : '#30363d'};
-                color: ${canUpgrade ? '#fff' : '#6e7681'};
-                padding: 4px 8px;
-                font-size: 10px;
-                font-weight: bold;
-                border-radius: 4px;
-                cursor: ${canUpgrade ? 'pointer' : 'not-allowed'};
-              ">
-                TRAIN (+1 LVL) [💎${t.upgradeCostSoulGems}]
-              </button>
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+              <div style="display:flex; gap:6px;">
+                ${
+                  atCategoryCap
+                    ? cap < hardCap
+                      ? `
+                    <button class="expand-troop-btn" data-id="${t.id}" style="
+                      background: ${canExpand ? '#0969da' : '#21262d'};
+                      border: 1px solid ${canExpand ? '#58a6ff' : '#30363d'};
+                      color: ${canExpand ? '#fff' : '#6e7681'};
+                      padding: 4px 8px;
+                      font-size: 10px;
+                      font-weight: bold;
+                      border-radius: 4px;
+                      cursor: ${canExpand ? 'pointer' : 'not-allowed'};
+                    " title="Spend Soul Diamonds to expand category slot capacity">
+                      EXPAND SLOT (+1) [💎${expandCost}]
+                    </button>
+                    `
+                      : `<span style="color:#7ee787; font-size:10px; font-weight:bold; padding: 4px 6px; background: rgba(46, 160, 67, 0.15); border-radius: 4px; border: 1px solid #2ea043;">MAXED (${hardCap}/${hardCap})</span>`
+                    : `
+                    <button class="hire-troop-btn" data-id="${t.id}" style="
+                      background: ${canHire ? '#1f6feb' : '#21262d'};
+                      border: 1px solid ${canHire ? '#58a6ff' : '#30363d'};
+                      color: ${canHire ? '#fff' : '#6e7681'};
+                      padding: 4px 8px;
+                      font-size: 10px;
+                      font-weight: bold;
+                      border-radius: 4px;
+                      cursor: ${canHire ? 'pointer' : 'not-allowed'};
+                    ">
+                      RECRUIT (+1) [⚡${t.hireCostEnergy}]
+                    </button>
+                  `
+                }
+                <button class="upgrade-troop-btn" data-id="${t.id}" style="
+                  background: ${canUpgrade ? '#8957e5' : '#21262d'};
+                  border: 1px solid ${canUpgrade ? '#d2a8ff' : '#30363d'};
+                  color: ${canUpgrade ? '#fff' : '#6e7681'};
+                  padding: 4px 8px;
+                  font-size: 10px;
+                  font-weight: bold;
+                  border-radius: 4px;
+                  cursor: ${canUpgrade ? 'pointer' : 'not-allowed'};
+                ">
+                  TRAIN (+1 LVL) [💎${t.upgradeCostSoulGems}]
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -689,6 +749,194 @@ export function createMythicUI(
 
             <div style="display: flex; flex-direction: column; gap: 8px;">
               ${relicCards}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 3B. DEBTS IN THE DEPTHS TAB (Underworld Debt & Minion Guild)
+    else if (activeTab === "debts") {
+      headerTitle = `🪙 DEBTS IN THE DEPTHS — UNDERWORLD BROKERAGE & MONSTER BESTIARY`;
+      const debt = gameState.underworldDebt;
+      const repaidPct = Math.min(100, Math.floor((debt.totalRepaid / debt.initialDebt) * 100));
+      const isCleared = debt.currentDebt <= 0;
+
+      const perksList = [
+        { id: "perk_25", pct: 25, title: "Debt Leniency", desc: "+25% Minion Troop Attack Damage", icon: "🗡️" },
+        { id: "perk_50", pct: 50, title: "Valued Underworld Client", desc: "+30% Era Energy Generation Speed", icon: "⚡" },
+        { id: "perk_75", pct: 75, title: "Stygian Mogul", desc: "+50% Hero Critical Strike Multiplier", icon: "💥" },
+        { id: "perk_100", pct: 100, title: "DEBT FREE IMMORTAL", desc: "Ancient Sovereign Wyrm summoned & Double Rewards!", icon: "👑" }
+      ];
+
+      const perkCards = perksList
+        .map(p => {
+          const unlocked = debt.unlockedPerks.includes(p.id) || repaidPct >= p.pct;
+          return `
+          <div style="background: ${unlocked ? 'rgba(46, 160, 67, 0.15)' : '#161b22'}; border: 1px solid ${unlocked ? '#2ea043' : '#30363d'}; border-radius: 6px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size: 20px;">${p.icon}</span>
+              <div>
+                <div style="font-weight: bold; font-size: 11px; color: ${unlocked ? '#7ee787' : '#c9d1d9'};">${p.title} (${p.pct}% Repaid)</div>
+                <div style="font-size: 10px; color: #8b949e;">${p.desc}</div>
+              </div>
+            </div>
+            <span style="font-size: 10px; font-weight: bold; color: ${unlocked ? '#7ee787' : '#8b949e'};">${unlocked ? '✨ UNLOCKED' : `${p.pct}% REQ`}</span>
+          </div>
+        `;
+        })
+        .join("");
+
+      const investmentCards = debt.investments
+        .map((inv: any) => {
+          const canBuy = gameState.currencies.eraEnergy >= inv.costGold;
+          return `
+          <div style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size: 24px;">${inv.icon}</span>
+              <div>
+                <div style="font-weight: bold; color: #e6edf3; font-size: 12px;">${inv.name} <span style="color:#ffd700; font-size:10px;">(Owned: ${inv.owned})</span></div>
+                <div style="font-size: 10px; color: #8b949e;">${inv.description}</div>
+                <div style="font-size: 10px; color: #7ee787; margin-top: 2px;">Yield: +${inv.incomePerSec * inv.owned} Energy/sec (+${inv.incomePerSec}/sec each)</div>
+              </div>
+            </div>
+            <button class="buy-investment-btn" data-id="${inv.id}" style="
+              background: ${canBuy ? '#1f6feb' : '#21262d'};
+              border: 1px solid ${canBuy ? '#58a6ff' : '#30363d'};
+              color: ${canBuy ? '#fff' : '#6e7681'};
+              padding: 6px 12px;
+              font-size: 10px;
+              font-weight: bold;
+              border-radius: 4px;
+              cursor: ${canBuy ? 'pointer' : 'not-allowed'};
+              white-space: nowrap;
+            ">
+              BUY (+1) [⚡${inv.costGold}]
+            </button>
+          </div>
+        `;
+        })
+        .join("");
+
+      const minionCards = gameState.troops
+        .map(t => {
+          const cap = t.maxCapacity || 1;
+          const hardCap = t.hardCap || 2;
+          const expandCost = t.expandCostSoulGems || 3;
+          const atCap = t.count >= cap;
+          const canExpand = hero.soulDiamonds >= expandCost && cap < hardCap;
+          const canHire = gameState.currencies.eraEnergy >= t.hireCostEnergy && !atCap;
+          const canUpgrade = hero.soulDiamonds >= t.upgradeCostSoulGems;
+
+          return `
+          <div style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size: 22px;">${t.icon}</span>
+              <div>
+                <div style="font-weight: bold; color: #${t.color.toString(16)}; font-size: 11px;">
+                  ${t.name} <span style="color:#ffd700; font-size:10px;">(${t.count}/${cap})</span>
+                </div>
+                <div style="font-size: 9px; color: #8b949e;">Role: ${t.role.toUpperCase()} | Base: ${t.baseDmg} DMG | Spd: ${(t.attackInterval / 60).toFixed(1)}s</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:4px;">
+              ${
+                atCap
+                  ? cap < hardCap
+                    ? `
+                <button class="expand-troop-btn" data-id="${t.id}" style="background:#0969da; border:1px solid #58a6ff; color:#fff; padding:3px 6px; font-size:9px; font-weight:bold; border-radius:3px; cursor:${canExpand ? 'pointer' : 'not-allowed'};">
+                  EXPAND [💎${expandCost}]
+                </button>
+              `
+                    : `<span style="color:#7ee787; font-size:9px; font-weight:bold; padding:2px 4px;">MAXED</span>`
+                  : `
+                <button class="hire-troop-btn" data-id="${t.id}" style="background:${canHire ? '#1f6feb' : '#21262d'}; border:1px solid ${canHire ? '#58a6ff' : '#30363d'}; color:${canHire ? '#fff' : '#6e7681'}; padding:3px 6px; font-size:9px; font-weight:bold; border-radius:3px; cursor:${canHire ? 'pointer' : 'not-allowed'};">
+                  RECRUIT [⚡${t.hireCostEnergy}]
+                </button>
+              `
+              }
+              <button class="upgrade-troop-btn" data-id="${t.id}" style="background:${canUpgrade ? '#8957e5' : '#21262d'}; border:1px solid ${canUpgrade ? '#d2a8ff' : '#30363d'}; color:${canUpgrade ? '#fff' : '#6e7681'}; padding:3px 6px; font-size:9px; font-weight:bold; border-radius:3px; cursor:${canUpgrade ? 'pointer' : 'not-allowed'};">
+                TRAIN [💎${t.upgradeCostSoulGems}]
+              </button>
+            </div>
+          </div>
+        `;
+        })
+        .join("");
+
+      bodyHtml = `
+        <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; height: 100%; padding: 16px;">
+          <!-- Left: Debt Balance, Repayment & Passive Investments -->
+          <div style="display: flex; flex-direction: column; gap: 12px; overflow-y: auto;">
+            <div style="background: linear-gradient(180deg, #1f1b24 0%, #161b22 100%); border: 2px solid ${isCleared ? '#ffd700' : '#ff7b72'}; border-radius: 8px; padding: 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <div>
+                  <span style="font-size: 15px; font-weight: 800; color: #ffd700;">🪙 UNDERWORLD DEBT REPAYMENT</span>
+                  <div style="font-size: 11px; color: #8b949e;">Clear your ancient debt to the depths to earn immortality & cosmic boons.</div>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-size: 18px; font-weight: 800; color: ${isCleared ? '#7ee787' : '#ff7b72'};">
+                    ${isCleared ? '✨ DEBT PAID IN FULL! ✨' : `${debt.currentDebt.toLocaleString()} OBOLS REMAINING`}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Progress bar -->
+              <div style="width: 100%; height: 10px; background: #0d1117; border-radius: 5px; overflow: hidden; border: 1px solid #30363d; margin: 8px 0;">
+                <div style="width: ${repaidPct}%; height: 100%; background: linear-gradient(90deg, #ff7b72, #ffd700, #7ee787); transition: width 0.3s ease;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size: 10px; color: #8b949e;">
+                <span>Total Repaid: ${debt.totalRepaid.toLocaleString()} Obols</span>
+                <span>${repaidPct}% Cleared</span>
+              </div>
+
+              <!-- Action Repay Buttons -->
+              ${
+                !isCleared
+                  ? `
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                  <button class="repay-debt-btn" data-amt="100" style="flex: 1; background: #238636; border: 1px solid #2ea043; color: #fff; padding: 6px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer;">
+                    PAY 100 [⚡100]
+                  </button>
+                  <button class="repay-debt-btn" data-amt="500" style="flex: 1; background: #238636; border: 1px solid #2ea043; color: #fff; padding: 6px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer;">
+                    PAY 500 [⚡500]
+                  </button>
+                  <button class="repay-debt-btn" data-amt="${debt.currentDebt}" style="flex: 1; background: #8957e5; border: 1px solid #a371f7; color: #fff; padding: 6px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer;">
+                    PAY ALL [⚡${debt.currentDebt}]
+                  </button>
+                </div>
+              `
+                  : `
+                <div style="margin-top: 8px; padding: 6px; background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700; border-radius: 4px; text-align: center; color: #ffd700; font-weight: bold; font-size: 11px;">
+                  👑 YOU HAVE CLEARED ALL DEBTS IN THE DEPTHS! MAXIMUM REPUTATION & MULTIPLIERS ACHIEVED!
+                </div>
+              `
+              }
+            </div>
+
+            <div style="font-size: 12px; font-weight: bold; color: #8b949e;">DEBT RELIEF TIER PERKS:</div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              ${perkCards}
+            </div>
+
+            <div style="font-size: 12px; font-weight: bold; color: #8b949e; margin-top: 4px;">PASSIVE STYGIAN INVESTMENTS:</div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${investmentCards}
+            </div>
+          </div>
+
+          <!-- Right: Debts in the Depths Minions Guild -->
+          <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #30363d; padding-bottom: 8px;">
+              <div>
+                <span style="font-size: 14px; font-weight: 800; color: #ffd700;">⚔️ SUMMONED MONSTER BESTIARY</span>
+                <div style="font-size: 10px; color: #8b949e;">Recruit and command creature companions from the Debts in the Depths caverns!</div>
+              </div>
+              <span style="color:#7ee787; font-weight:bold; font-size:11px;">⚡ ${gameState.troops.reduce((a, t) => a + t.count, 0)} Active</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              ${minionCards}
             </div>
           </div>
         </div>
@@ -1323,13 +1571,61 @@ export function createMythicUI(
       `;
     }
 
+    // Quick Tab Switcher inside Modal
+    const modalTabsList: Array<{ id: TabType; label: string; icon: string }> = [
+      { id: "hero", label: "HERO & GEAR", icon: "👤" },
+      { id: "combat", label: "BATTLE", icon: "⚡" },
+      { id: "forge", label: "FORGE", icon: "🔨" },
+      { id: "chi", label: "CHI / ANGEL", icon: "🪶" },
+      { id: "rogue", label: "MINI-NINJAS", icon: "⚔️" },
+      { id: "debts", label: "UNDERWORLD DEBT", icon: "🪙" },
+      { id: "investigation", label: "MYSTERY", icon: "🔍" },
+      { id: "timeline", label: "TIMELINE", icon: "🗺️" },
+      { id: "memories", label: "MEMORIES", icon: "🧠" },
+      { id: "lore", label: "LORE", icon: "📜" },
+      { id: "ascension", label: "ASCENSION", icon: "🌌" }
+    ];
+
+    const modalNavPills = modalTabsList
+      .map(
+        t => `
+      <button class="modal-tab-pill-btn" data-tab="${t.id}" style="
+        background: ${activeTab === t.id ? '#1f6feb' : '#21262d'};
+        border: 1px solid ${activeTab === t.id ? '#58a6ff' : '#30363d'};
+        color: ${activeTab === t.id ? '#ffffff' : '#8b949e'};
+        padding: 4px 8px;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        transition: all 0.1s ease;
+      ">
+        <span>${t.icon}</span>
+        <span>${t.label}</span>
+      </button>
+    `
+      )
+      .join("");
+
     // Inject Modal DOM
     modalWindow.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; background: #161b22; border-bottom: 2px solid #30363d; padding: 10px 16px;">
-        <span style="font-size: 14px; font-weight: 800; color: #e6edf3; letter-spacing: 0.5px;">${headerTitle}</span>
-        <button id="close-modal-btn" style="background: #da3633; border: 1px solid #f85149; color: #fff; padding: 4px 12px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer;">
-          CLOSE [X]
-        </button>
+      <div style="display: flex; flex-direction: column; background: #161b22; border-bottom: 2px solid #30363d;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid #21262d;">
+          <span style="font-size: 13px; font-weight: 800; color: #e6edf3; letter-spacing: 0.5px;">${headerTitle}</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size: 10px; color: #8b949e;">Press <kbd style="background:#21262d; border:1px solid #30363d; border-radius:3px; padding:1px 4px; color:#c9d1d9;">ESC</kbd> to return to game</span>
+            <button id="close-modal-btn" style="background: #da3633; border: 1px solid #f85149; color: #fff; padding: 4px 12px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+              <span>✕</span> <span>CLOSE</span>
+            </button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 6px; padding: 6px 14px; overflow-x: auto; background: #0d1117;">
+          ${modalNavPills}
+        </div>
       </div>
       <div style="flex: 1; overflow: hidden; position: relative;">
         ${bodyHtml}
@@ -1341,6 +1637,17 @@ export function createMythicUI(
       activeTab = null;
       modalWindow.style.display = "none";
       renderNavBar();
+    });
+
+    modalWindow.querySelectorAll(".modal-tab-pill-btn").forEach(pill => {
+      pill.addEventListener("click", e => {
+        const target = (pill as HTMLElement).getAttribute("data-tab") as TabType;
+        if (target) {
+          activeTab = target;
+          renderModalContent();
+          renderNavBar();
+        }
+      });
     });
 
     // 1. Hero Event Listeners
@@ -1461,6 +1768,17 @@ export function createMythicUI(
         });
       });
 
+      modalWindow.querySelectorAll(".expand-troop-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const id = (btn as HTMLElement).getAttribute("data-id")!;
+          const success = gameState.expandTroopCapacity(id, hero);
+          if (success) {
+            renderModalContent();
+            renderTopBar();
+          }
+        });
+      });
+
       modalWindow.querySelectorAll(".upgrade-troop-btn").forEach(btn => {
         btn.addEventListener("click", e => {
           const id = (btn as HTMLElement).getAttribute("data-id")!;
@@ -1476,6 +1794,72 @@ export function createMythicUI(
         btn.addEventListener("click", e => {
           const id = (btn as HTMLElement).getAttribute("data-id")!;
           const success = gameState.upgradeRelic(id, hero);
+          if (success) {
+            renderModalContent();
+            renderTopBar();
+          }
+        });
+      });
+    }
+
+    // 3B. Debts in the Depths Event Listeners
+    else if (activeTab === "debts") {
+      modalWindow.querySelectorAll(".repay-debt-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const amt = parseInt((btn as HTMLElement).getAttribute("data-amt") || "0");
+          if (amt > 0) {
+            const success = gameState.repayUnderworldDebt(amt);
+            if (success) {
+              logger.printLine(`*** Repaid ${amt.toLocaleString()} Obols toward Underworld Debt! ***`, "#ffd700");
+              renderModalContent();
+              renderTopBar();
+            } else {
+              logger.printLine(`Need more Era Energy to repay this amount.`, "#ff7b72");
+            }
+          }
+        });
+      });
+
+      modalWindow.querySelectorAll(".buy-investment-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const id = (btn as HTMLElement).getAttribute("data-id")!;
+          const success = gameState.buyDepthsInvestment(id);
+          if (success) {
+            logger.printLine(`Purchased underworld passive yield investment!`, "#7ee787");
+            renderModalContent();
+            renderTopBar();
+          } else {
+            logger.printLine(`Need more Era Energy to purchase this investment.`, "#ff7b72");
+          }
+        });
+      });
+
+      modalWindow.querySelectorAll(".hire-troop-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const id = (btn as HTMLElement).getAttribute("data-id")!;
+          const success = gameState.hireTroop(id, hero);
+          if (success) {
+            renderModalContent();
+            renderTopBar();
+          }
+        });
+      });
+
+      modalWindow.querySelectorAll(".expand-troop-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const id = (btn as HTMLElement).getAttribute("data-id")!;
+          const success = gameState.expandTroopCapacity(id, hero);
+          if (success) {
+            renderModalContent();
+            renderTopBar();
+          }
+        });
+      });
+
+      modalWindow.querySelectorAll(".upgrade-troop-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const id = (btn as HTMLElement).getAttribute("data-id")!;
+          const success = gameState.upgradeTroop(id, hero);
           if (success) {
             renderModalContent();
             renderTopBar();
@@ -1699,15 +2083,59 @@ export function createMythicUI(
     }
   }
 
+  // Tab Control Functions
+  function openTab(tab: TabType) {
+    activeTab = tab;
+    if (tab) {
+      modalWindow.style.display = "flex";
+      renderModalContent();
+    } else {
+      modalWindow.style.display = "none";
+    }
+    renderNavBar();
+  }
+
+  function closeTab() {
+    activeTab = null;
+    modalWindow.style.display = "none";
+    renderNavBar();
+  }
+
+  function toggleTab(tab: TabType) {
+    if (activeTab === tab) {
+      closeTab();
+    } else {
+      openTab(tab);
+    }
+  }
+
+  // Keyboard shortcut: ESC to close any open modal
+  window.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "Escape" && activeTab) {
+      closeTab();
+    }
+  });
+
+  // Attach to window object for header buttons or external triggers
+  (window as any).mythicUI = {
+    openTab,
+    closeTab,
+    toggleTab,
+    getActiveTab: () => activeTab
+  };
+
   // Initial render
   renderTopBar();
   renderNavBar();
 
-  // Return live update hook
+  // Return live update hook and controls
   return {
     updateUI: () => {
       renderTopBar();
       if (activeTab) renderModalContent();
-    }
+    },
+    openTab,
+    closeTab,
+    toggleTab
   };
 }

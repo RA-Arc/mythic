@@ -2,6 +2,7 @@ import { AnimatedSprite, Texture } from "pixi.js";
 import { RPGItem, EquipSlot, CosmicForce, EraId, TransformationType, CompanionTroop, RogueRelic } from "./types";
 import { INITIAL_COMPANION_TROOPS } from "./data/troops";
 import { INITIAL_ROGUE_RELICS } from "./data/relics";
+import { getSafeTextures } from "./safeTexture";
 
 export type HeroState =
   | "idle"
@@ -65,6 +66,7 @@ export class Hero {
   holyShieldHp: number = 0;
   maxHolyShieldHp: number = 0;
   permanentSeraphEnabled: boolean = false;
+  public onTransform?: (form: TransformationType) => void;
 
   // Rogue with the Dead Distance & Relics Progression
   distanceMeters: number = 0;
@@ -113,7 +115,7 @@ export class Hero {
   constructor() {
     this.loadBaseAnimations();
     this.loadArcAngelAnimations();
-    const initialTextures = this.baseAnimations.idle.length > 0 ? this.baseAnimations.idle : [Texture.WHITE];
+    const initialTextures = getSafeTextures(this.baseAnimations.idle);
     this.sprite = new AnimatedSprite(initialTextures);
     this.sprite.animationSpeed = 0.15;
     this.sprite.anchor.set(0.5);
@@ -147,24 +149,30 @@ export class Hero {
     const frames: Texture[] = [];
     for (let i = 0; i < count; i++) {
       try {
-        frames.push(Texture.from(`assets/sprites/${folder}/${prefix}_${i}.png`));
+        const tex = Texture.from(`assets/sprites/${folder}/${prefix}_${i}.png`);
+        if (tex instanceof Texture) {
+          frames.push(tex);
+        }
       } catch {
         // Safe texture fallback
       }
     }
-    return frames;
+    return getSafeTextures(frames);
   }
 
   private loadHero2NamedFrames(prefix: string, count: number): Texture[] {
     const frames: Texture[] = [];
     for (let i = 1; i <= count; i++) {
       try {
-        frames.push(Texture.from(`assets/sprites/hero2/${prefix}${i}.png`));
+        const tex = Texture.from(`assets/sprites/hero2/${prefix}${i}.png`);
+        if (tex instanceof Texture) {
+          frames.push(tex);
+        }
       } catch {
         // Safe texture fallback
       }
     }
-    return frames;
+    return getSafeTextures(frames);
   }
 
   public gainChi(amount: number) {
@@ -203,6 +211,7 @@ export class Hero {
     }
 
     this.setState("idle");
+    this.onTransform?.(form);
   }
 
   public revertTransform() {
@@ -244,11 +253,10 @@ export class Hero {
           : this.baseAnimations["idle"];
     }
 
-    if (targetTextures && targetTextures.length > 0) {
-      this.sprite.textures = targetTextures;
-      this.sprite.animationSpeed = this.activeForm === "arc_angel" ? 0.22 : 0.15;
-      this.sprite.play();
-    }
+    const safeTextures = getSafeTextures(targetTextures);
+    this.sprite.textures = safeTextures;
+    this.sprite.animationSpeed = this.activeForm === "arc_angel" ? 0.22 : 0.15;
+    this.sprite.play();
   }
 
   gainXp(amount: number): boolean {

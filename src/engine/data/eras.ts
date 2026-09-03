@@ -6,7 +6,7 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     order: 1,
     name: "Era of Dawn",
     subtitle: "Pre-Human Primordial Chaos",
-    description: "Titans clash across volcanic expanses and elemental nebulae. Proto-humans awaken within cosmic geysers, capturing the first sparks of mythic essence.",
+    description: "Titans clash across volcanic expanses and elemental caverns. Proto-humans awaken within cosmic depths, capturing the first sparks of mythic essence.",
     bannerColor: "#ff471a",
     primaryMaterial: "primordial_essence",
     primaryMaterialName: "Primordial Essence",
@@ -20,14 +20,15 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     baseEnergyRate: 1.5,
     baseMaterialRate: 0.8,
     bossName: "Titan of Dawn",
-    bossTitle: "The Unshaped World-Breaker",
+    bossTitle: "The Unshaped World-Breaker Dragon",
     bossHp: 800,
     bossDamage: 18,
     bossAffinity: "Architect",
+    bossSpriteName: "sprDragon",
     enemies: [
-      { name: "Magma Whelp", hpMultiplier: 1.0, dmgMultiplier: 1.0, affinity: "Elemental", tint: 0xff6633 },
-      { name: "Primordial Shade", hpMultiplier: 1.2, dmgMultiplier: 1.1, affinity: "Wraithborn", tint: 0x9933ff },
-      { name: "Volcanic Golem", hpMultiplier: 1.5, dmgMultiplier: 1.3, affinity: "Architect", tint: 0xcc4400 }
+      { name: "Batilisk Scout", hpMultiplier: 1.0, dmgMultiplier: 1.0, affinity: "Elemental", tint: 0xff6633, spriteName: "sprBatilisk1" },
+      { name: "Cave Goblin", hpMultiplier: 1.2, dmgMultiplier: 1.1, affinity: "Neutral", tint: 0xffffff, spriteName: "sprGoblin1" },
+      { name: "Cavern Bogslium", hpMultiplier: 1.5, dmgMultiplier: 1.3, affinity: "Architect", tint: 0x88dd44, spriteName: "sprBogslium1" }
     ],
     specializations: ["Titan Warden", "Primordial Shaman", "Chaos Binder"]
   },
@@ -36,7 +37,7 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     order: 2,
     name: "Era of Fire",
     subtitle: "Hunter-Gatherer & The First Flame",
-    description: "Nomadic hunters bind wandering flame spirits. Humanity crafts the first bone tools and ritual pyres beneath the gaze of mythic beasts.",
+    description: "Nomadic hunters bind wandering flame spirits. Humanity crafts the first bone tools beneath the gaze of subterranean inferno beasts.",
     bannerColor: "#ff7700",
     primaryMaterial: "ember_flint",
     primaryMaterialName: "Ember Flint",
@@ -50,14 +51,15 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     baseEnergyRate: 3.5,
     baseMaterialRate: 1.5,
     bossName: "Fire Leviathan",
-    bossTitle: "Ancient Terror of the Ash Wastes",
+    bossTitle: "Ancient Terror of the Inferno",
     bossHp: 2400,
     bossDamage: 38,
     bossAffinity: "Wraithborn",
+    bossSpriteName: "sprDragon",
     enemies: [
-      { name: "Saberclaw Beast", hpMultiplier: 2.2, dmgMultiplier: 1.8, affinity: "Elemental", tint: 0xffaa33 },
-      { name: "Ember Spirit", hpMultiplier: 2.0, dmgMultiplier: 2.2, affinity: "Echo", tint: 0xff4422 },
-      { name: "Ash Goliath", hpMultiplier: 3.0, dmgMultiplier: 2.5, affinity: "Wraithborn", tint: 0x884433 }
+      { name: "Brimstone Batilisk", hpMultiplier: 2.2, dmgMultiplier: 1.8, affinity: "Elemental", tint: 0xff8833, spriteName: "sprBatilisk2" },
+      { name: "Magma Goblin", hpMultiplier: 2.0, dmgMultiplier: 2.2, affinity: "Wraithborn", tint: 0xff4422, spriteName: "sprGoblin2" },
+      { name: "Infernal Minotaur", hpMultiplier: 3.0, dmgMultiplier: 2.5, affinity: "Architect", tint: 0xee5533, spriteName: "sprMinotaur1" }
     ],
     specializations: ["Ash Vanguard", "Flame Ritualist", "Wild Beastlord"]
   },
@@ -66,7 +68,7 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     order: 3,
     name: "Era of Stone",
     subtitle: "Early Civilization & Megaliths",
-    description: "Great stone monoliths rise as tribal deities watch over clan warfare. Earth guardians and ancient totems guard the first settled valleys.",
+    description: "Great stone monoliths rise as tribal deities watch over clan warfare. Crypt skeletons and ancient minotaurs guard the first barrows.",
     bannerColor: "#9e917d",
     primaryMaterial: "runed_granite",
     primaryMaterialName: "Runed Granite",
@@ -84,10 +86,11 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     bossHp: 6500,
     bossDamage: 72,
     bossAffinity: "Architect",
+    bossSpriteName: "sprMinotaur2",
     enemies: [
-      { name: "Rune-Carved Golem", hpMultiplier: 4.5, dmgMultiplier: 3.5, affinity: "Architect", tint: 0xaa9988 },
-      { name: "Clan Berserker", hpMultiplier: 3.8, dmgMultiplier: 4.2, affinity: "Neutral", tint: 0x778899 },
-      { name: "Cave Wyrm", hpMultiplier: 5.2, dmgMultiplier: 4.0, affinity: "Wraithborn", tint: 0x556644 }
+      { name: "Crypt Skeleton", hpMultiplier: 4.5, dmgMultiplier: 3.5, affinity: "Wraithborn", tint: 0xffffff, spriteName: "sprSkeleton" },
+      { name: "Tomb Goblin", hpMultiplier: 3.8, dmgMultiplier: 4.2, affinity: "Neutral", tint: 0x99aacc, spriteName: "sprGoblin3" },
+      { name: "Acidic Bogslium", hpMultiplier: 5.2, dmgMultiplier: 4.0, affinity: "Elemental", tint: 0x33ee77, spriteName: "sprBogslium2" }
     ],
     specializations: ["Megalith Sentinel", "Earth Totemist", "Chieftain Warcaller"]
   },
@@ -96,7 +99,7 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     order: 4,
     name: "Era of Bronze",
     subtitle: "City-States & Mythic Champions",
-    description: "Gilded city-states build ziggurats and acropolises. Heroic champions wield mythic bronze alloys blessed by martial pantheons.",
+    description: "Gilded city-states build ziggurats and acropolises. Heroic champions wield mythic bronze alloys against deadly orc archers and lizard monks.",
     bannerColor: "#cd7f32",
     primaryMaterial: "orichalcum_ingot",
     primaryMaterialName: "Orichalcum Ingot",
@@ -114,10 +117,11 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     bossHp: 16000,
     bossDamage: 130,
     bossAffinity: "Wraithborn",
+    bossSpriteName: "sprMinotaur2",
     enemies: [
-      { name: "Spartan Hoplon Ghost", hpMultiplier: 7.5, dmgMultiplier: 6.5, affinity: "Echo", tint: 0xdd9944 },
-      { name: "Orichalcum Automaton", hpMultiplier: 9.0, dmgMultiplier: 7.2, affinity: "Architect", tint: 0xffbb55 },
-      { name: "Chimera Marauder", hpMultiplier: 8.2, dmgMultiplier: 8.0, affinity: "Wraithborn", tint: 0xcc6633 }
+      { name: "Orc Marksman", hpMultiplier: 7.5, dmgMultiplier: 6.5, affinity: "Neutral", tint: 0xffffff, spriteName: "sprOrcArcher" },
+      { name: "Lizard Monk Acolyte", hpMultiplier: 9.0, dmgMultiplier: 7.2, affinity: "Echo", tint: 0xffffff, spriteName: "sprLizardMonk" },
+      { name: "Armored Skeleton Guard", hpMultiplier: 8.2, dmgMultiplier: 8.0, affinity: "Architect", tint: 0xddaa77, spriteName: "sprSkeleton2" }
     ],
     specializations: ["Spartan Phalanx", "Solar Champion", "Orichalcum Smith"]
   },
@@ -144,10 +148,11 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     bossHp: 38000,
     bossDamage: 240,
     bossAffinity: "Architect",
+    bossSpriteName: "sprMinotaur3",
     enemies: [
-      { name: "Imperial Legionnaire", hpMultiplier: 14.0, dmgMultiplier: 11.5, affinity: "Architect", tint: 0x99aabb },
-      { name: "Cataphract Phantom", hpMultiplier: 16.5, dmgMultiplier: 13.0, affinity: "Echo", tint: 0x667788 },
-      { name: "Siege Behemoth", hpMultiplier: 20.0, dmgMultiplier: 14.5, affinity: "Neutral", tint: 0x445566 }
+      { name: "Heavy Orc Crossbowman", hpMultiplier: 14.0, dmgMultiplier: 11.5, affinity: "Architect", tint: 0x99aabb, spriteName: "sprOrcArcher2" },
+      { name: "Dread Skeleton Knight", hpMultiplier: 16.5, dmgMultiplier: 13.0, affinity: "Wraithborn", tint: 0xcccccc, spriteName: "sprSkeleton3" },
+      { name: "Ironclad Minotaur", hpMultiplier: 20.0, dmgMultiplier: 14.5, affinity: "Neutral", tint: 0x778899, spriteName: "sprMinotaur2" }
     ],
     specializations: ["Imperial Centurion", "Siege Architect", "Warlord Tactician"]
   },
@@ -169,15 +174,16 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     generatorName: "Sanctuary of Divine Radiance",
     baseEnergyRate: 90.0,
     baseMaterialRate: 25.0,
-    bossName: "Angelic Seraphim",
-    bossTitle: "The Six-Winged Inquisitor",
+    bossName: "Spectral Sovereign Dragon",
+    bossTitle: "The Six-Winged Inquisitor of the Deep",
     bossHp: 85000,
     bossDamage: 450,
     bossAffinity: "Architect",
+    bossSpriteName: "sprDragon",
     enemies: [
-      { name: "Fallen Crusader", hpMultiplier: 26.0, dmgMultiplier: 20.0, affinity: "Wraithborn", tint: 0x882233 },
-      { name: "Gargoyle Sentinel", hpMultiplier: 29.0, dmgMultiplier: 22.0, affinity: "Architect", tint: 0x667799 },
-      { name: "Eldritch Inquisitor", hpMultiplier: 25.0, dmgMultiplier: 27.0, affinity: "Echo", tint: 0xffcc33 }
+      { name: "Spectral Apparition", hpMultiplier: 26.0, dmgMultiplier: 20.0, affinity: "Echo", tint: 0xffffff, spriteName: "sprGhost1" },
+      { name: "Ascended Lizard Monk", hpMultiplier: 29.0, dmgMultiplier: 22.0, affinity: "Echo", tint: 0xffe066, spriteName: "sprLizardMonk2" },
+      { name: "Dread Batilisk Screecher", hpMultiplier: 25.0, dmgMultiplier: 27.0, affinity: "Wraithborn", tint: 0xcc4488, spriteName: "sprBatilisk3" }
     ],
     specializations: ["Grand Inquisitor", "Radiant Templar", "Eldritch Saint"]
   },
@@ -186,7 +192,7 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     order: 7,
     name: "Era of Discovery",
     subtitle: "Renaissance & Alchemical Magic",
-    description: "Astronomers, alchemists, and navigators map the cosmos and transmute base reality. Mythic inventions awaken from parchment blueprints.",
+    description: "Astronomers, alchemists, and navigators map the cosmos and transmute base reality into mythic inventions.",
     bannerColor: "#20b2aa",
     primaryMaterial: "philosophers_quicksilver",
     primaryMaterialName: "Philosopher's Quicksilver",
@@ -200,14 +206,15 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     baseEnergyRate: 220.0,
     baseMaterialRate: 55.0,
     bossName: "Leonardo's Grand Automaton",
-    bossTitle: "Omni-Disciplinary Clockwork Marvel",
+    bossTitle: "Transmuted Wyrm of the Depths",
     bossHp: 190000,
     bossDamage: 850,
     bossAffinity: "Echo",
+    bossSpriteName: "sprDragon",
     enemies: [
-      { name: "Alchemical Homunculus", hpMultiplier: 42.0, dmgMultiplier: 36.0, affinity: "Wraithborn", tint: 0x33ccaa },
-      { name: "Arcane Astrologer", hpMultiplier: 38.0, dmgMultiplier: 44.0, affinity: "Echo", tint: 0x66ddff },
-      { name: "Clockwork Duelist", hpMultiplier: 45.0, dmgMultiplier: 40.0, affinity: "Architect", tint: 0xffd700 }
+      { name: "Caustic Bogslium Hulk", hpMultiplier: 42.0, dmgMultiplier: 36.0, affinity: "Elemental", tint: 0x00ffcc, spriteName: "sprBogslium3" },
+      { name: "Elite Orc Deadeye", hpMultiplier: 38.0, dmgMultiplier: 44.0, affinity: "Neutral", tint: 0xffffff, spriteName: "sprOrcArcher3" },
+      { name: "Phantasm Stalker", hpMultiplier: 45.0, dmgMultiplier: 40.0, affinity: "Echo", tint: 0x99ddff, spriteName: "sprGhost2" }
     ],
     specializations: ["Magnum Alchemist", "Celestial Cartographer", "Grand Artificer"]
   },
@@ -216,7 +223,7 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     order: 8,
     name: "Era of Steam",
     subtitle: "Industrial Revolution & Iron Giants",
-    description: "Soot-choked skies hum with steam engines, iron foundries, and machine spirits. Gigantic locomotives and brass automatons rule industrial metropolises.",
+    description: "Soot-choked skies hum with steam engines, iron foundries, and machine spirits. Gigantic automatons rule industrial metropolises.",
     bannerColor: "#b8860b",
     primaryMaterial: "steam_core",
     primaryMaterialName: "Pressurized Steam Core",
@@ -230,14 +237,15 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     baseEnergyRate: 550.0,
     baseMaterialRate: 130.0,
     bossName: "Iron Giant Leviathan",
-    bossTitle: "Sovereign of the Smokestacks",
+    bossTitle: "Clockwork Apex of the Depths",
     bossHp: 460000,
     bossDamage: 1650,
     bossAffinity: "Architect",
+    bossSpriteName: "sprDragon",
     enemies: [
-      { name: "Overclocked Mechanoid", hpMultiplier: 68.0, dmgMultiplier: 58.0, affinity: "Architect", tint: 0xd2b48c },
-      { name: "Smog Wraith", hpMultiplier: 62.0, dmgMultiplier: 70.0, affinity: "Wraithborn", tint: 0x555555 },
-      { name: "Piston Enforcer", hpMultiplier: 78.0, dmgMultiplier: 64.0, affinity: "Neutral", tint: 0xb8860b }
+      { name: "Clockwork Goblin Sapper", hpMultiplier: 68.0, dmgMultiplier: 58.0, affinity: "Architect", tint: 0xffffff, spriteName: "sprGoblin3" },
+      { name: "Steam Slime Automaton", hpMultiplier: 62.0, dmgMultiplier: 70.0, affinity: "Elemental", tint: 0xcc9944, spriteName: "sprBogslium3" },
+      { name: "Steam-Forged Minotaur", hpMultiplier: 78.0, dmgMultiplier: 64.0, affinity: "Architect", tint: 0xddaa55, spriteName: "sprMinotaur3" }
     ],
     specializations: ["Steam Mecha-Pilot", "Industrial Magnate", "Overclock Savant"]
   },
@@ -260,14 +268,15 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     baseEnergyRate: 1400.0,
     baseMaterialRate: 300.0,
     bossName: "Nuclear Wraith Titan",
-    bossTitle: "The Radioactive Singularity",
+    bossTitle: "The Radioactive Reactor Dragon",
     bossHp: 1100000,
     bossDamage: 3400,
     bossAffinity: "Wraithborn",
+    bossSpriteName: "sprDragon",
     enemies: [
-      { name: "Radiation Phantom", hpMultiplier: 110.0, dmgMultiplier: 100.0, affinity: "Wraithborn", tint: 0x39ff14 },
-      { name: "Cyber-Drone Swarm", hpMultiplier: 100.0, dmgMultiplier: 120.0, affinity: "Echo", tint: 0x00ffff },
-      { name: "Superconducting Mech", hpMultiplier: 135.0, dmgMultiplier: 108.0, affinity: "Architect", tint: 0x228833 }
+      { name: "Gamma Batilisk", hpMultiplier: 110.0, dmgMultiplier: 100.0, affinity: "Elemental", tint: 0x39ff14, spriteName: "sprBatilisk3" },
+      { name: "Radiation Phantom", hpMultiplier: 100.0, dmgMultiplier: 120.0, affinity: "Echo", tint: 0x00ffaa, spriteName: "sprGhost3" },
+      { name: "Atomic Minotaur Juggernaut", hpMultiplier: 135.0, dmgMultiplier: 108.0, affinity: "Architect", tint: 0x55ff55, spriteName: "sprMinotaur3" }
     ],
     specializations: ["Atomic Physicist", "Quantum Manipulator", "Cyber-Vanguard"]
   },
@@ -276,7 +285,7 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     order: 10,
     name: "Era of Stars",
     subtitle: "Far Future & Cosmic Ascendance",
-    description: "Humanity reaches the galactic rim, forging Dyson spheres and bending spacetime. The hero confronts cosmic titans in the ultimate convergence.",
+    description: "Humanity reaches the galactic rim, confronting cosmic titans in the ultimate convergence of time and space.",
     bannerColor: "#9370db",
     primaryMaterial: "stellarite_shard",
     primaryMaterialName: "Dark Matter Stellarite",
@@ -290,14 +299,15 @@ export const ERA_DATA: Record<EraId, EraDefinition> = {
     baseEnergyRate: 4000.0,
     baseMaterialRate: 800.0,
     bossName: "Stellar Behemoth",
-    bossTitle: "Cosmic Entity of the Outer Void",
+    bossTitle: "Eternal Cosmic Star Dragon",
     bossHp: 3200000,
     bossDamage: 7500,
     bossAffinity: "Echo",
+    bossSpriteName: "sprDragon",
     enemies: [
-      { name: "Void Titan Spawn", hpMultiplier: 200.0, dmgMultiplier: 180.0, affinity: "Wraithborn", tint: 0x9933cc },
-      { name: "Solar Seraph", hpMultiplier: 220.0, dmgMultiplier: 200.0, affinity: "Architect", tint: 0xffd700 },
-      { name: "Temporal Echo Shifter", hpMultiplier: 240.0, dmgMultiplier: 220.0, affinity: "Echo", tint: 0x33eeff }
+      { name: "Astral Void Ghost", hpMultiplier: 200.0, dmgMultiplier: 180.0, affinity: "Wraithborn", tint: 0xaa66ff, spriteName: "sprGhost3" },
+      { name: "Cosmic Grandmaster Monk", hpMultiplier: 220.0, dmgMultiplier: 200.0, affinity: "Architect", tint: 0xffeedd, spriteName: "sprLizardMonk3" },
+      { name: "Singularity Minotaur Colossus", hpMultiplier: 240.0, dmgMultiplier: 220.0, affinity: "Echo", tint: 0x9955ee, spriteName: "sprMinotaur3" }
     ],
     specializations: ["Stellar Harbinger", "Cosmic Architect", "Void Dominator"]
   }
