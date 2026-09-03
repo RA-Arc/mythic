@@ -129,14 +129,16 @@ async function initGame() {
 
     // 6. Royalty-Free Separated Era Backgrounds (Clean CraftPix RPG Battlegrounds & Caves)
     assetList.push(
-      "assets/backgrounds/bg_battleground_castle.jpg",
-      "assets/backgrounds/bg_battleground_sky.jpg",
-      "assets/backgrounds/bg_battleground_forest.jpg",
-      "assets/backgrounds/bg_battleground_bamboo.jpg",
-      "assets/backgrounds/bg_cave_crystal.jpg",
-      "assets/backgrounds/bg_cave_stone.jpg",
-      "assets/backgrounds/bg_cave_lava.jpg",
-      "assets/backgrounds/bg_cave_spider.jpg"
+      "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_1.jpg",
+      "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_1.jpg",
+      "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_2.jpg",
+      "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_1.jpg",
+      "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_1.jpg",
+      "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_1.jpg",
+      "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_1.jpg",
+      "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_1.jpg",
+      "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_1.jpg",
+      "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_3.jpg"
     );
 
     // 7. Depths Monsters & Companions
@@ -367,6 +369,7 @@ async function initGame() {
 
   // 7-Layer Parallax Engine with Real-Time Ground Water Reflection
   const parallaxEngine = new ParallaxEngine();
+  (window as any).parallaxEngine = parallaxEngine;
   backgroundLayer.addChild(parallaxEngine.rootContainer);
   parallaxEngine.setEra(gameState.currentEra);
 
