@@ -1,0 +1,782 @@
+[
+  {
+    "slug": "cave-horizontal-rpg-battle-backgrounds",
+    "title": "Deep Subterranean Caverns",
+    "theme": "Underground & Crystals",
+    "backgrounds": [
+      {
+        "id": "cave-horizontal-rpg-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "cave-horizontal-rpg-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "cave-horizontal-rpg-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "cave-horizontal-rpg-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "rpg-arena-backgrounds-asset-pack",
+    "title": "Colosseum & Battle Arenas",
+    "theme": "Gladiator & Martial",
+    "backgrounds": [
+      {
+        "id": "rpg-arena-backgrounds-asset-pack_1",
+        "path": "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "rpg-arena-backgrounds-asset-pack_2",
+        "path": "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "rpg-arena-backgrounds-asset-pack_3",
+        "path": "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "rpg-arena-backgrounds-asset-pack_4",
+        "path": "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "fantasy-horizontal-battle-backgrounds",
+    "title": "Mystic Fantasy Groves",
+    "theme": "Magic & Nature",
+    "backgrounds": [
+      {
+        "id": "fantasy-horizontal-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/fantasy-horizontal-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "fantasy-horizontal-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/fantasy-horizontal-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "fantasy-horizontal-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/fantasy-horizontal-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "fantasy-horizontal-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/fantasy-horizontal-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "orc-lands-horizontal-battle-backgrounds",
+    "title": "Orcish Badlands & Strongholds",
+    "theme": "Wastelands & Siege",
+    "backgrounds": [
+      {
+        "id": "orc-lands-horizontal-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "orc-lands-horizontal-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "orc-lands-horizontal-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "orc-lands-horizontal-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "castle-horizontal-battle-backgrounds",
+    "title": "Imperial Castle & Fortress Ramparts",
+    "theme": "Medieval & Royal",
+    "backgrounds": [
+      {
+        "id": "castle-horizontal-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "castle-horizontal-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "castle-horizontal-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "castle-horizontal-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "fantasy-forest-battle-backgrounds",
+    "title": "Enchanted Forest & Glades",
+    "theme": "Woodlands & Wilderness",
+    "backgrounds": [
+      {
+        "id": "fantasy-forest-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "fantasy-forest-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "fantasy-forest-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "fantasy-forest-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "ship-and-coast-battle-game-backgrounds",
+    "title": "Pirate Ships & Island Coasts",
+    "theme": "Nautical & Shores",
+    "backgrounds": [
+      {
+        "id": "ship-and-coast-battle-game-backgrounds_1",
+        "path": "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "ship-and-coast-battle-game-backgrounds_2",
+        "path": "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "ship-and-coast-battle-game-backgrounds_3",
+        "path": "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "ship-and-coast-battle-game-backgrounds_4",
+        "path": "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "free-rpg-battleground-asset-pack",
+    "title": "Scenic Bridges & Shrines",
+    "theme": "Overworld & Landmarks",
+    "backgrounds": [
+      {
+        "id": "free-rpg-battleground-asset-pack_1",
+        "path": "assets/backgrounds/packs/free-rpg-battleground-asset-pack/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-rpg-battleground-asset-pack_2",
+        "path": "assets/backgrounds/packs/free-rpg-battleground-asset-pack/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-rpg-battleground-asset-pack_3",
+        "path": "assets/backgrounds/packs/free-rpg-battleground-asset-pack/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-rpg-battleground-asset-pack_4",
+        "path": "assets/backgrounds/packs/free-rpg-battleground-asset-pack/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "dragon-caves-battleground-game-asset-pack",
+    "title": "Dragon Lairs & Molten Chasms",
+    "theme": "Magma & Draconic",
+    "backgrounds": [
+      {
+        "id": "dragon-caves-battleground-game-asset-pack_1",
+        "path": "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "dragon-caves-battleground-game-asset-pack_2",
+        "path": "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "dragon-caves-battleground-game-asset-pack_3",
+        "path": "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "dragon-caves-battleground-game-asset-pack_4",
+        "path": "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "battle-location-game-asset-pack",
+    "title": "Wild Frontier & Oases",
+    "theme": "Frontier & Expeditions",
+    "backgrounds": [
+      {
+        "id": "battle-location-game-asset-pack_1",
+        "path": "assets/backgrounds/packs/battle-location-game-asset-pack/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "battle-location-game-asset-pack_2",
+        "path": "assets/backgrounds/packs/battle-location-game-asset-pack/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "battle-location-game-asset-pack_3",
+        "path": "assets/backgrounds/packs/battle-location-game-asset-pack/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "battle-location-game-asset-pack_4",
+        "path": "assets/backgrounds/packs/battle-location-game-asset-pack/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "castle-battle-arena-asset-pack",
+    "title": "Grand Tourney Arenas",
+    "theme": "Joust & Tournament",
+    "backgrounds": [
+      {
+        "id": "castle-battle-arena-asset-pack_1",
+        "path": "assets/backgrounds/packs/castle-battle-arena-asset-pack/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "castle-battle-arena-asset-pack_2",
+        "path": "assets/backgrounds/packs/castle-battle-arena-asset-pack/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "castle-battle-arena-asset-pack_3",
+        "path": "assets/backgrounds/packs/castle-battle-arena-asset-pack/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "castle-battle-arena-asset-pack_4",
+        "path": "assets/backgrounds/packs/castle-battle-arena-asset-pack/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "free-4-nature-backgrounds-for-rpg-battle",
+    "title": "Four Seasons Nature Landscapes",
+    "theme": "Seasonal Wilderness",
+    "backgrounds": [
+      {
+        "id": "free-4-nature-backgrounds-for-rpg-battle_1",
+        "path": "assets/backgrounds/packs/free-4-nature-backgrounds-for-rpg-battle/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-4-nature-backgrounds-for-rpg-battle_2",
+        "path": "assets/backgrounds/packs/free-4-nature-backgrounds-for-rpg-battle/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-4-nature-backgrounds-for-rpg-battle_3",
+        "path": "assets/backgrounds/packs/free-4-nature-backgrounds-for-rpg-battle/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-4-nature-backgrounds-for-rpg-battle_4",
+        "path": "assets/backgrounds/packs/free-4-nature-backgrounds-for-rpg-battle/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "horizontal-dark-magic-battle-backgrounds",
+    "title": "Shadow Realm & Void Altars",
+    "theme": "Dark Arts & Abyssal",
+    "backgrounds": [
+      {
+        "id": "horizontal-dark-magic-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-dark-magic-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-dark-magic-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-dark-magic-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "rpg-2d-arenas-for-battle-game",
+    "title": "Ancient Stone Battlegrounds",
+    "theme": "Ruins & Dueling Grounds",
+    "backgrounds": [
+      {
+        "id": "rpg-2d-arenas-for-battle-game_1",
+        "path": "assets/backgrounds/packs/rpg-2d-arenas-for-battle-game/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "rpg-2d-arenas-for-battle-game_2",
+        "path": "assets/backgrounds/packs/rpg-2d-arenas-for-battle-game/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "rpg-2d-arenas-for-battle-game_3",
+        "path": "assets/backgrounds/packs/rpg-2d-arenas-for-battle-game/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "rpg-2d-arenas-for-battle-game_4",
+        "path": "assets/backgrounds/packs/rpg-2d-arenas-for-battle-game/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "free-vampires-locations-battle-background-pack",
+    "title": "Gothic Crypts & Graveyards",
+    "theme": "Vampiric & Crypts",
+    "backgrounds": [
+      {
+        "id": "free-vampires-locations-battle-background-pack_1",
+        "path": "assets/backgrounds/packs/free-vampires-locations-battle-background-pack/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-vampires-locations-battle-background-pack_2",
+        "path": "assets/backgrounds/packs/free-vampires-locations-battle-background-pack/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-vampires-locations-battle-background-pack_3",
+        "path": "assets/backgrounds/packs/free-vampires-locations-battle-background-pack/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "free-vampires-locations-battle-background-pack_4",
+        "path": "assets/backgrounds/packs/free-vampires-locations-battle-background-pack/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "horizontal-egypt-battle-backgrounds-2",
+    "title": "Golden Pyramids & Dunes II",
+    "theme": "Pharaonic & Deserts",
+    "backgrounds": [
+      {
+        "id": "horizontal-egypt-battle-backgrounds-2_1",
+        "path": "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds-2/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-egypt-battle-backgrounds-2_2",
+        "path": "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds-2/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-egypt-battle-backgrounds-2_3",
+        "path": "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds-2/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-egypt-battle-backgrounds-2_4",
+        "path": "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds-2/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "vampire-horizontal-battle-backgrounds",
+    "title": "Vampire Manors & Moonlit Keeps",
+    "theme": "Nocturnal & Castles",
+    "backgrounds": [
+      {
+        "id": "vampire-horizontal-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "vampire-horizontal-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "vampire-horizontal-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "vampire-horizontal-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "flying-island-battle-backgrounds",
+    "title": "Floating Sky Islands & Temples",
+    "theme": "Celestial & Skylands",
+    "backgrounds": [
+      {
+        "id": "flying-island-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "flying-island-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "flying-island-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "flying-island-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "horizontal-egypt-battle-backgrounds",
+    "title": "Pharaoh Temples & Luxor Valley",
+    "theme": "Ancient Egypt",
+    "backgrounds": [
+      {
+        "id": "horizontal-egypt-battle-backgrounds_1",
+        "path": "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-egypt-battle-backgrounds_2",
+        "path": "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-egypt-battle-backgrounds_3",
+        "path": "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "horizontal-egypt-battle-backgrounds_4",
+        "path": "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  },
+  {
+    "slug": "dark-magic-battle-game-backgrounds",
+    "title": "Eldritch Spire & Demon Gates",
+    "theme": "Demonic & Occult",
+    "backgrounds": [
+      {
+        "id": "dark-magic-battle-game-backgrounds_1",
+        "path": "assets/backgrounds/packs/dark-magic-battle-game-backgrounds/bg_1.jpg",
+        "index": 1,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "dark-magic-battle-game-backgrounds_2",
+        "path": "assets/backgrounds/packs/dark-magic-battle-game-backgrounds/bg_2.jpg",
+        "index": 2,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "dark-magic-battle-game-backgrounds_3",
+        "path": "assets/backgrounds/packs/dark-magic-battle-game-backgrounds/bg_3.jpg",
+        "index": 3,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      },
+      {
+        "id": "dark-magic-battle-game-backgrounds_4",
+        "path": "assets/backgrounds/packs/dark-magic-battle-game-backgrounds/bg_4.jpg",
+        "index": 4,
+        "width": 2560,
+        "height": 512,
+        "seamlessMirrored": true
+      }
+    ]
+  }
+]

@@ -18,16 +18,16 @@ interface ParallaxLayerData {
 }
 
 export const ERA_BACKGROUND_TEXTURES: Record<EraId, string> = {
-  dawn: "assets/backgrounds/bg_battleground_sky.jpg",
-  fire: "assets/backgrounds/bg_cave_lava.jpg",
-  stone: "assets/backgrounds/bg_cave_stone.jpg",
-  bronze: "assets/backgrounds/bg_battleground_bamboo.jpg",
-  iron: "assets/backgrounds/bg_battleground_castle.jpg",
-  faith: "assets/backgrounds/bg_cave_crystal.jpg",
-  discovery: "assets/backgrounds/bg_battleground_forest.jpg",
-  steam: "assets/backgrounds/bg_cave_spider.jpg",
-  atom: "assets/backgrounds/bg_cave_crystal.jpg",
-  stars: "assets/backgrounds/bg_battleground_sky.jpg"
+  dawn: "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_1.jpg",
+  fire: "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_1.jpg",
+  stone: "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_2.jpg",
+  bronze: "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_1.jpg",
+  iron: "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_1.jpg",
+  faith: "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_1.jpg",
+  discovery: "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_1.jpg",
+  steam: "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_1.jpg",
+  atom: "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_1.jpg",
+  stars: "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_3.jpg"
 };
 
 export class ParallaxEngine {
@@ -184,6 +184,33 @@ export class ParallaxEngine {
 
     this.renderAllEraLayers(eraId);
     this.renderWaterBase(eraId);
+  }
+
+  public setCustomBackground(texPath: string) {
+    try {
+      const tex = Texture.from(texPath);
+      if (tex instanceof Texture) {
+        this.bgSprite1.texture = tex;
+        this.bgSprite2.texture = tex;
+
+        const applyStretch = () => {
+          this.bgSprite1.width = 2560;
+          this.bgSprite1.height = 512;
+          this.bgSprite2.width = 2560;
+          this.bgSprite2.height = 512;
+          this.bgSprite2.x = 2560;
+          this.bgSprite1.visible = true;
+          this.bgSprite2.visible = true;
+        };
+
+        applyStretch();
+        if (tex.source) {
+          tex.source.once("update", applyStretch);
+        }
+      }
+    } catch {
+      // Safe fallback
+    }
   }
 
   public update(

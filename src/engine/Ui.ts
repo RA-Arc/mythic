@@ -7,6 +7,7 @@ import { COSMIC_TRAIT_TREE } from "./data/traits";
 import { MASTER_GEAR_CATALOG, COLOR_MAP } from "./data/gear";
 import { ALL_ABILITIES } from "./data/skills";
 import { LORE_DATABASE } from "./data/lore";
+import { BATTLEGROUND_PACKS } from "./data/battlegrounds";
 import { soundEngine } from "./SoundEngine";
 import { EquipSlot, RPGItem, CosmicForce, EraId } from "./types";
 
@@ -106,9 +107,12 @@ export function createMythicUI(
     | "forge"
     | "lore"
     | "ascension"
+    | "battlegrounds"
     | null;
   let activeTab: TabType = null;
   let activeInvestigationEra: string = "dawn";
+  let activeBattlefieldCategory: string = "all";
+  let currentCustomBattlefield: string = "";
 
   // Render Top Bar
   function renderTopBar() {
@@ -197,6 +201,10 @@ export function createMythicUI(
         <button id="quick-boss-toggle" style="background: ${combatEngine.bossMode ? '#b62324' : '#238636'}; border: 1px solid #30363d; color: #fff; padding: 4px 8px; font-size: 10px; font-weight: bold; border-radius: 4px; cursor: pointer;">
           ${combatEngine.bossMode ? '⚔️ BOSS ACTIVE' : '💀 SUMMON BOSS'}
         </button>
+        <button id="quick-battlefield-btn" style="background: #1f6feb; border: 1px solid #388bfd; color: #ffffff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 4px;" title="Battleground Archive — 20 Packs / 80 Seamless Battlefields">
+          <span>🖼️</span>
+          <span>BATTLEFIELDS (80)</span>
+        </button>
         <button id="audio-toggle-btn" style="background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">
           ${soundEngine.isMuted() ? '🔇' : '🔊'}
         </button>
@@ -234,6 +242,13 @@ export function createMythicUI(
       renderTopBar();
     });
 
+    topBar.querySelector("#quick-battlefield-btn")?.addEventListener("click", () => {
+      activeTab = "battlegrounds";
+      modalWindow.style.display = "flex";
+      renderModalContent();
+      renderNavBar();
+    });
+
     topBar.querySelector("#audio-toggle-btn")?.addEventListener("click", () => {
       soundEngine.toggleMute();
       renderTopBar();
@@ -253,7 +268,8 @@ export function createMythicUI(
       { id: "memories", label: "MEMORIES & TRAITS", icon: "🧠" },
       { id: "forge", label: "MYTHIC FORGE", icon: "🔨" },
       { id: "lore", label: "LORE CODEX", icon: "📜" },
-      { id: "ascension", label: "ASCENSION & SAVE", icon: "🌌" }
+      { id: "ascension", label: "ASCENSION & SAVE", icon: "🌌" },
+      { id: "battlegrounds", label: "BATTLEFIELDS", icon: "🖼️" }
     ];
 
     navBar.innerHTML = tabs
@@ -1571,6 +1587,134 @@ export function createMythicUI(
       `;
     }
 
+    // 8. BATTLEGROUNDS ARCHIVE (20 PACKS / 80 SEAMLESS BATTLEFIELDS)
+    else if (activeTab === "battlegrounds") {
+      headerTitle = `🖼️ HORIZONTAL RPG BATTLEGROUND ARCHIVE (20 PACKS / 80 SEAMLESS SCENES)`;
+
+      const categories = [
+        { id: "all", label: "ALL 20 PACKS (80 SCENES)" },
+        { id: "cave", label: "CAVES & MINES" },
+        { id: "arena", label: "ARENAS & CASTLES" },
+        { id: "forest", label: "FORESTS & NATURE" },
+        { id: "sky", label: "SKY & ISLANDS" },
+        { id: "dark", label: "DARK MAGIC & VAMPIRES" },
+        { id: "egypt", label: "EGYPT & DESERTS" },
+        { id: "coast", label: "SHIPS & COASTS" }
+      ];
+
+      const categoryButtons = categories
+        .map(
+          cat => `
+        <button class="bg-filter-btn" data-cat="${cat.id}" style="
+          background: ${activeBattlefieldCategory === cat.id ? '#1f6feb' : '#21262d'};
+          border: 1px solid ${activeBattlefieldCategory === cat.id ? '#58a6ff' : '#30363d'};
+          color: ${activeBattlefieldCategory === cat.id ? '#ffffff' : '#8b949e'};
+          padding: 5px 10px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.1s ease;
+        ">${cat.label}</button>
+      `
+        )
+        .join("");
+
+      const filteredPacks = BATTLEGROUND_PACKS.filter(pack => {
+        if (activeBattlefieldCategory === "all") return true;
+        const s = (pack.slug + " " + pack.title + " " + pack.theme).toLowerCase();
+        if (activeBattlefieldCategory === "cave") return s.includes("cave") || s.includes("subterranean");
+        if (activeBattlefieldCategory === "arena") return s.includes("arena") || s.includes("castle") || s.includes("colosseum");
+        if (activeBattlefieldCategory === "forest") return s.includes("forest") || s.includes("nature") || s.includes("grove") || s.includes("wilderness");
+        if (activeBattlefieldCategory === "sky") return s.includes("sky") || s.includes("island") || s.includes("flying");
+        if (activeBattlefieldCategory === "dark") return s.includes("dark") || s.includes("vampire") || s.includes("magic") || s.includes("void") || s.includes("crypt");
+        if (activeBattlefieldCategory === "egypt") return s.includes("egypt") || s.includes("dune") || s.includes("desert") || s.includes("pyramid");
+        if (activeBattlefieldCategory === "coast") return s.includes("ship") || s.includes("coast") || s.includes("island") || s.includes("ocean");
+        return true;
+      });
+
+      const packsHtml = filteredPacks
+        .map(pack => {
+          const scenesHtml = pack.scenes
+            .map(scene => {
+              const isActive = currentCustomBattlefield === scene.path;
+              return `
+            <div style="background: #0d1117; border: 1px solid ${isActive ? '#3fb950' : '#30363d'}; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; box-shadow: ${isActive ? '0 0 10px rgba(63, 185, 80, 0.4)' : 'none'};">
+              <div style="position: relative; width: 100%; height: 110px; background: #000;">
+                <img src="${scene.path}" alt="${scene.title}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" />
+                ${
+                  isActive
+                    ? `
+                  <div style="position: absolute; top: 6px; right: 6px; background: #238636; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; display: flex; align-items: center; gap: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                    <span>✓</span> <span>ACTIVE</span>
+                  </div>
+                `
+                    : `
+                  <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: #8b949e; font-size: 9px; padding: 2px 5px; border-radius: 3px;">
+                    Seamless 2560px
+                  </div>
+                `
+                }
+              </div>
+              <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; background: #161b22;">
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: ${isActive ? '#7ee787' : '#e6edf3'};">Scene ${scene.index}</div>
+                  <div style="font-size: 9px; color: #8b949e;">Horizontal Mirrored Tile</div>
+                </div>
+                <button class="deploy-bg-btn" data-path="${scene.path}" data-title="${scene.title}" style="
+                  background: ${isActive ? '#238636' : '#21262d'};
+                  border: 1px solid ${isActive ? '#2ea043' : '#388bfd'};
+                  color: ${isActive ? '#ffffff' : '#58a6ff'};
+                  padding: 4px 10px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: all 0.1s ease;
+                ">
+                  ${isActive ? 'DEPLOYED' : 'DEPLOY'}
+                </button>
+              </div>
+            </div>
+          `;
+            })
+            .join("");
+
+          return `
+          <div style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #21262d; padding-bottom: 6px;">
+              <div>
+                <span style="font-size: 13px; font-weight: 800; color: #58a6ff;">${pack.title}</span>
+                <span style="font-size: 10px; background: rgba(56, 139, 253, 0.15); border: 1px solid #1f6feb; color: #79c0ff; padding: 1px 6px; border-radius: 3px; margin-left: 8px;">${pack.theme}</span>
+              </div>
+              <span style="font-size: 10px; color: #8b949e; font-family: monospace;">${pack.slug}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+              ${scenesHtml}
+            </div>
+          </div>
+        `;
+        })
+        .join("");
+
+      bodyHtml = `
+        <div style="display: flex; flex-direction: column; height: 100%; background: #0d1117;">
+          <div style="padding: 10px 16px; background: #161b22; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+            <div style="display: flex; gap: 6px; overflow-x: auto; flex: 1;">
+              ${categoryButtons}
+            </div>
+            <button id="surprise-bg-btn" style="background: #8957e5; border: 1px solid #a371f7; color: #fff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+              <span>🎲</span> <span>SURPRISE BATTLEFIELD</span>
+            </button>
+          </div>
+          <div style="flex: 1; overflow-y: auto; padding: 14px 16px;">
+            ${packsHtml}
+          </div>
+        </div>
+      `;
+    }
+
     // Quick Tab Switcher inside Modal
     const modalTabsList: Array<{ id: TabType; label: string; icon: string }> = [
       { id: "hero", label: "HERO & GEAR", icon: "👤" },
@@ -1583,7 +1727,8 @@ export function createMythicUI(
       { id: "timeline", label: "TIMELINE", icon: "🗺️" },
       { id: "memories", label: "MEMORIES", icon: "🧠" },
       { id: "lore", label: "LORE", icon: "📜" },
-      { id: "ascension", label: "ASCENSION", icon: "🌌" }
+      { id: "ascension", label: "ASCENSION", icon: "🌌" },
+      { id: "battlegrounds", label: "BATTLEFIELDS", icon: "🖼️" }
     ];
 
     const modalNavPills = modalTabsList
@@ -2078,6 +2223,52 @@ export function createMythicUI(
           } else {
             alert("Invalid save data format.");
           }
+        }
+      });
+    }
+
+    // 8. Battlegrounds Archive Listeners
+    else if (activeTab === "battlegrounds") {
+      modalWindow.querySelectorAll(".bg-filter-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const cat = (e.currentTarget as HTMLElement).getAttribute("data-cat");
+          if (cat) {
+            activeBattlefieldCategory = cat;
+            renderModalContent();
+          }
+        });
+      });
+
+      modalWindow.querySelectorAll(".deploy-bg-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const path = (e.currentTarget as HTMLElement).getAttribute("data-path");
+          const title = (e.currentTarget as HTMLElement).getAttribute("data-title");
+          if (path) {
+            currentCustomBattlefield = path;
+            const engine = (window as any).parallaxEngine;
+            if (engine?.setCustomBackground) {
+              engine.setCustomBackground(path);
+            }
+            logger.printLine(`*** BATTLEFIELD DEPLOYED: ${title || path} ***`, "#3fb950");
+            soundEngine.playBuy();
+            renderModalContent();
+          }
+        });
+      });
+
+      modalWindow.querySelector("#surprise-bg-btn")?.addEventListener("click", () => {
+        const allScenes: { path: string; title: string }[] = [];
+        BATTLEGROUND_PACKS.forEach(p => p.scenes.forEach(s => allScenes.push({ path: s.path, title: s.title })));
+        if (allScenes.length > 0) {
+          const randomPick = allScenes[Math.floor(Math.random() * allScenes.length)];
+          currentCustomBattlefield = randomPick.path;
+          const engine = (window as any).parallaxEngine;
+          if (engine?.setCustomBackground) {
+            engine.setCustomBackground(randomPick.path);
+          }
+          logger.printLine(`🎲 SURPRISE BATTLEFIELD DEPLOYED: ${randomPick.title}`, "#a371f7");
+          soundEngine.playEraAdvance();
+          renderModalContent();
         }
       });
     }
