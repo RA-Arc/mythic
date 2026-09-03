@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, Text, TextStyle } from "pixi.js";
+import { Application, Assets, Container, Graphics, Text, TextStyle, AnimatedSprite, Texture } from "pixi.js";
 import { Hero } from "./engine/Hero";
 import { GameState } from "./engine/GameState";
 import { CombatEngine } from "./engine/CombatEngine";
@@ -8,6 +8,8 @@ import { createMythicLog } from "./engine/Log";
 import { ERA_DATA } from "./engine/data/eras";
 import { soundEngine } from "./engine/SoundEngine";
 import { EraId } from "./engine/types";
+import { ParallaxEngine } from "./engine/ParallaxEngine";
+import { getSafeTextures } from "./engine/safeTexture";
 
 async function initGame() {
   const app = new Application();
@@ -36,42 +38,157 @@ async function initGame() {
   wrapper.appendChild(app.canvas);
 
   // Responsive Scaling for Canvas Host with ResizeObserver
+  let resizeRafId: number | null = null;
+  let lastScale = -1;
+
   function resizeGameViewport() {
     if (!canvasHost) return;
     const hostWidth = canvasHost.clientWidth || 1280;
     const scale = hostWidth / 1280;
-    wrapper.style.transform = `scale(${scale})`;
+    if (Math.abs(scale - lastScale) > 0.0005) {
+      lastScale = scale;
+      wrapper.style.transform = `scale(${scale})`;
+    }
   }
+
+  function scheduleResize() {
+    if (resizeRafId !== null) {
+      cancelAnimationFrame(resizeRafId);
+    }
+    resizeRafId = requestAnimationFrame(() => {
+      resizeGameViewport();
+      resizeRafId = null;
+    });
+  }
+
   const resizeObserver = new ResizeObserver(() => {
-    resizeGameViewport();
+    scheduleResize();
   });
   if (canvasHost) {
     resizeObserver.observe(canvasHost);
   }
-  window.addEventListener("resize", resizeGameViewport);
-  setTimeout(resizeGameViewport, 50);
+  window.addEventListener("resize", scheduleResize);
+  scheduleResize();
 
-  // Preload Sprite Assets
-  const heroPrefixes = ["idle", "run", "attack", "jump", "swim", "x"];
-  for (const p of heroPrefixes) {
-    const count = p === "attack" ? 3 : p === "idle" || p === "jump" || p === "x" ? 4 : 6;
-    for (let i = 0; i < count; i++) {
-      try {
-        await Assets.load(`assets/sprites/hero/${p}_${i}.png`);
-      } catch {
-        // Safe texture fallback
+  // Preload Sprite Assets (Hero, Humanoid Enemies, Bosses, Arc Angel, and UI)
+  async function preloadLocalAssets() {
+    const assetList: string[] = [];
+
+    // 1. Base Hero sprites
+    const heroPrefixes = ["idle", "run", "attack", "jump", "swim", "x"];
+    for (const p of heroPrefixes) {
+      const count = p === "attack" ? 3 : p === "idle" || p === "jump" || p === "x" ? 4 : 6;
+      for (let i = 0; i < count; i++) {
+        assetList.push(`assets/sprites/hero/${p}_${i}.png`);
       }
     }
-  }
 
-  const bossFrames = ["flying1", "flying2", "attack1", "attack2"];
-  for (const f of bossFrames) {
+    // 2. Enemy Humanoid (hero1) sprites
+    for (const p of heroPrefixes) {
+      const count = p === "attack" ? 3 : p === "idle" || p === "jump" || p === "x" ? 4 : 6;
+      for (let i = 0; i < count; i++) {
+        assetList.push(`assets/sprites/hero1/${p}_${i}.png`);
+      }
+    }
+
+    // 3. Boss sprites
+    const bossFrames = ["flying1", "flying2", "attack1", "attack2"];
+    for (const f of bossFrames) {
+      assetList.push(`assets/sprites/boss/${f}.png`);
+    }
+
+    // 4. Arc Angel (hero2) sprites
+    const hero2Configs = [
+      { prefix: "hero2-idle", count: 5 },
+      { prefix: "hero2-walk", count: 7 },
+      { prefix: "hero2-attack", count: 6 },
+      { prefix: "hero2-aoe-attack", count: 6 },
+      { prefix: "hero2-s-attack", count: 6 },
+      { prefix: "hero2-defend", count: 4 },
+      { prefix: "hero2-dodge", count: 2 },
+      { prefix: "hero2-low-health", count: 6 },
+      { prefix: "hero2-parry", count: 3 },
+      { prefix: "hero2-perish", count: 6 },
+      { prefix: "hero2-levelup", count: 4 }
+    ];
+    for (const cfg of hero2Configs) {
+      for (let i = 1; i <= cfg.count; i++) {
+        assetList.push(`assets/sprites/hero2/${cfg.prefix}${i}.png`);
+      }
+    }
+    assetList.push("assets/sprites/hero2/hero2-turn-center.png");
+    assetList.push("assets/sprites/hero2/hero2-turn-center2.png");
+
+    // 5. UI sprites
+    assetList.push(
+      "assets/sprites/ui/hp_fill.png",
+      "assets/sprites/ui/hp_frame.png",
+      "assets/sprites/ui/hp_glow.png",
+      "assets/sprites/ui/ui-toolbar.png"
+    );
+
+    // 6. Royalty-Free Separated Era Backgrounds (Clean CraftPix RPG Battlegrounds & Caves)
+    assetList.push(
+      "assets/backgrounds/bg_battleground_castle.jpg",
+      "assets/backgrounds/bg_battleground_sky.jpg",
+      "assets/backgrounds/bg_battleground_forest.jpg",
+      "assets/backgrounds/bg_battleground_bamboo.jpg",
+      "assets/backgrounds/bg_cave_crystal.jpg",
+      "assets/backgrounds/bg_cave_stone.jpg",
+      "assets/backgrounds/bg_cave_lava.jpg",
+      "assets/backgrounds/bg_cave_spider.jpg"
+    );
+
+    // 7. Depths Monsters & Companions
+    const depthsSpriteNames = [
+      "sprGoblin1", "sprGoblin2", "sprGoblin3",
+      "sprBatilisk1", "sprBatilisk2", "sprBatilisk3",
+      "sprSkeleton", "sprSkeleton2", "sprSkeleton3",
+      "sprOrcArcher", "sprOrcArcher2", "sprOrcArcher3",
+      "sprLizardMonk", "sprLizardMonk2", "sprLizardMonk3",
+      "sprBogslium1", "sprBogslium2", "sprBogslium3",
+      "sprGhost1", "sprGhost2", "sprGhost3",
+      "sprMinotaur1", "sprMinotaur2", "sprMinotaur3",
+      "sprDragon", "sprWizard",
+      "sprAttackLarge", "sprAttackSwing", "sprAttackStab",
+      "sprAcidProjectile", "sprFirebolt", "sprMagicBolt"
+    ];
+    for (const s of depthsSpriteNames) {
+      const cnt = s === "sprDragon" ? 6 : (s === "sprAttackLarge" || s === "sprAttackSwing" || s === "sprAttackStab") ? 4 : 4;
+      for (let i = 0; i < cnt; i++) {
+        assetList.push(`assets/depths/sprites/${s}/frame_${i}.png`);
+      }
+    }
+
+    // Try fetching manifest for any additional frames
     try {
-      await Assets.load(`assets/sprites/boss/${f}.png`);
+      const manifestResp = await fetch("assets/depths/sprites_manifest.json");
+      if (manifestResp.ok) {
+        const manifest = await manifestResp.json();
+        for (const key of Object.keys(manifest)) {
+          const entry = manifest[key];
+          if (entry && Array.isArray(entry.frames)) {
+            for (const f of entry.frames) {
+              if (!assetList.includes(f)) {
+                assetList.push(f);
+              }
+            }
+          }
+        }
+      }
     } catch {
-      // Safe texture fallback
+      // Manifest fetch is optional enhancement
+    }
+
+    // Batch load into Pixi Assets cache
+    const batchSize = 16;
+    for (let i = 0; i < assetList.length; i += batchSize) {
+      const chunk = assetList.slice(i, i + batchSize);
+      await Promise.allSettled(chunk.map(path => Assets.load(path)));
     }
   }
+
+  await preloadLocalAssets();
 
   // Visual Layers
   const backgroundLayer = new Container();
@@ -80,6 +197,12 @@ async function initGame() {
   // Dedicated Tactical Combat Container for Hero, Enemies, Bosses & Combat Sprites
   const tacticalCombatContainer = new Container();
   tacticalCombatContainer.label = "TacticalCombatContainer";
+  tacticalCombatContainer.sortableChildren = true;
+
+  // Ground shadow graphics layer beneath combat actors
+  const shadowGfx = new Graphics();
+  shadowGfx.label = "ShadowLayer";
+  tacticalCombatContainer.addChild(shadowGfx);
 
   const particleLayer = new Container();
   particleLayer.label = "ParticleLayer";
@@ -102,103 +225,152 @@ async function initGame() {
   hero.sprite.y = 420;
   tacticalCombatContainer.addChild(hero.sprite);
 
+  // Wire up transformation ascension particle effects (replaces any black circle)
+  hero.onTransform = (form) => {
+    if (form === "arc_angel") {
+      particles.triggerAngelAscension(hero.sprite.x, hero.sprite.y);
+    } else {
+      particles.triggerScreenFlash(0xff3333, 18, 0.35);
+      particles.addFloatingText(`✧ ${form.toUpperCase()} ✧`, hero.sprite.x, hero.sprite.y - 50, "#ff7744", 20);
+    }
+  };
+
   const combatEngine = new CombatEngine(hero, gameState, particles);
   const logger = createMythicLog(wrapper);
   const ui = createMythicUI(wrapper, hero, gameState, combatEngine, logger);
 
-  // Dynamic Background Renderer per Era
-  const bgGraphics = new Graphics();
-  backgroundLayer.addChild(bgGraphics);
-
-  let currentRenderedEra: EraId | null = null;
-  function renderEraBackground(eraId: EraId) {
-    bgGraphics.clear();
-    const era = ERA_DATA[eraId];
-
-    if (eraId === "dawn") {
-      // Primal Volcanic Nebulae
-      bgGraphics.fill(0x1a0808).rect(0, 0, 1280, 720);
-      bgGraphics.fill(0x331100).circle(300, 200, 260);
-      bgGraphics.fill(0x441505).circle(900, 250, 300);
-      bgGraphics.fill(0x220a05).rect(0, 480, 1280, 240);
-      // Magma cracks
-      bgGraphics.stroke({ width: 4, color: 0xff3300, alpha: 0.8 });
-      bgGraphics.moveTo(100, 560).lineTo(400, 600).lineTo(700, 570).lineTo(1100, 640);
-    } else if (eraId === "fire") {
-      // Midnight Forest & Campfire Wastes
-      bgGraphics.fill(0x0a0c10).rect(0, 0, 1280, 720);
-      bgGraphics.fill(0x1e1208).circle(640, 400, 350);
-      bgGraphics.fill(0x151008).rect(0, 480, 1280, 240);
-      bgGraphics.fill(0xff6600).circle(640, 520, 40);
-    } else if (eraId === "stone") {
-      // Megalithic Plateau
-      bgGraphics.fill(0x101318).rect(0, 0, 1280, 720);
-      bgGraphics.fill(0x2a2824).rect(150, 260, 60, 260);
-      bgGraphics.fill(0x2a2824).rect(350, 220, 70, 300);
-      bgGraphics.fill(0x2a2824).rect(900, 200, 80, 320);
-      bgGraphics.fill(0x3a3832).rect(120, 240, 330, 40); // Dolmen arch
-      bgGraphics.fill(0x1a1c1a).rect(0, 500, 1280, 220);
-    } else if (eraId === "bronze") {
-      // Mediterranean Marble Citadel
-      bgGraphics.fill(0x121a24).rect(0, 0, 1280, 720);
-      bgGraphics.fill(0xffd700).circle(1100, 150, 80); // Solar disc
-      // Marble Pillars
-      for (let i = 0; i < 6; i++) {
-        bgGraphics.fill(0x3a3d45).rect(120 + i * 200, 240, 40, 280);
+  // Companion Visual Squadron Asset Setup (Debts in the Depths + Legacy Ninjas)
+  function getTextureFrames(folder: string, prefix: string, count: number): Texture[] {
+    const frames: Texture[] = [];
+    for (let i = 0; i < count; i++) {
+      try {
+        const tex = Texture.from(`assets/sprites/${folder}/${prefix}_${i}.png`);
+        if (tex instanceof Texture) {
+          frames.push(tex);
+        }
+      } catch {
+        // Safe texture fallback
       }
-      bgGraphics.fill(0x4a4235).rect(80, 200, 1120, 45); // Roof pediment
-      bgGraphics.fill(0x1a221a).rect(0, 520, 1280, 200);
-    } else if (eraId === "iron") {
-      // Imperial Fortress & War Standard
-      bgGraphics.fill(0x14161a).rect(0, 0, 1280, 720);
-      bgGraphics.fill(0x22262d).rect(0, 320, 1280, 200); // Fortress wall
-      bgGraphics.fill(0x30363d).rect(400, 200, 120, 320); // Watchtower
-      bgGraphics.fill(0x30363d).rect(800, 200, 120, 320);
-      bgGraphics.fill(0x1a1a1e).rect(0, 520, 1280, 200);
-    } else if (eraId === "faith") {
-      // Gothic Cathedral Sanctum
-      bgGraphics.fill(0x0c0c16).rect(0, 0, 1280, 720);
-      // Rose window
-      bgGraphics.fill(0xffcc00).circle(640, 220, 110);
-      bgGraphics.fill(0x334488).circle(640, 220, 95);
-      // Light shafts
-      bgGraphics.fill(0xfffae6).poly([560, 220, 720, 220, 1000, 720, 280, 720]);
-      bgGraphics.alpha = 0.85;
-      bgGraphics.fill(0x14121a).rect(0, 520, 1280, 200);
-    } else if (eraId === "discovery") {
-      // Renaissance Alchemical Observatory
-      bgGraphics.fill(0x081418).rect(0, 0, 1280, 720);
-      bgGraphics.stroke({ width: 3, color: 0x00e5ff, alpha: 0.6 });
-      bgGraphics.circle(640, 260, 160);
-      bgGraphics.circle(640, 260, 220);
-      bgGraphics.fill(0x12242a).rect(0, 500, 1280, 220);
-    } else if (eraId === "steam") {
-      // Industrial Machine Metropolis
-      bgGraphics.fill(0x181410).rect(0, 0, 1280, 720);
-      // Smokestacks
-      bgGraphics.fill(0x28201a).rect(200, 140, 60, 380);
-      bgGraphics.fill(0x28201a).rect(450, 100, 80, 420);
-      bgGraphics.fill(0x28201a).rect(850, 160, 70, 360);
-      bgGraphics.fill(0x1c1a18).rect(0, 520, 1280, 200);
-    } else if (eraId === "atom") {
-      // Nuclear Tokamak Facility & Neon Grid
-      bgGraphics.fill(0x061208).rect(0, 0, 1280, 720);
-      bgGraphics.fill(0x39ff14).circle(640, 260, 140);
-      bgGraphics.fill(0x091c0e).circle(640, 260, 120);
-      bgGraphics.fill(0x0b1e10).rect(0, 500, 1280, 220);
-    } else if (eraId === "stars") {
-      // Cosmic Singularity & Dyson Rings
-      bgGraphics.fill(0x040308).rect(0, 0, 1280, 720);
-      bgGraphics.fill(0x7b2cbf).circle(640, 240, 180);
-      bgGraphics.fill(0x000000).circle(640, 240, 150); // Black hole core
-      bgGraphics.stroke({ width: 4, color: 0x00f0ff, alpha: 0.7 });
-      bgGraphics.ellipse(640, 240, 320, 80);
-      bgGraphics.fill(0x0d0b1a).rect(0, 520, 1280, 200);
     }
+    return getSafeTextures(frames);
   }
 
-  // Initial Era background
-  renderEraBackground(gameState.currentEra);
+  const miniNinjaIdle = getTextureFrames("hero1", "idle", 4);
+  const miniNinjaRun = getTextureFrames("hero1", "run", 6);
+  const miniNinjaAttack = getTextureFrames("hero1", "attack", 3);
+
+  const depthsTroopTexturesCache = new Map<string, Texture[]>();
+  function getDepthsTroopFrames(spriteName: string): Texture[] {
+    if (depthsTroopTexturesCache.has(spriteName)) {
+      return depthsTroopTexturesCache.get(spriteName)!;
+    }
+    const frameCount = spriteName === "sprDragon" ? 6 : 4;
+    const frames: Texture[] = [];
+    for (let i = 0; i < frameCount; i++) {
+      try {
+        const tex = Texture.from(`assets/depths/sprites/${spriteName}/frame_${i}.png`);
+        if (tex instanceof Texture) {
+          frames.push(tex);
+        }
+      } catch {
+        // Safe fallback
+      }
+    }
+    const res = getSafeTextures(frames.length > 0 ? frames : miniNinjaIdle);
+    depthsTroopTexturesCache.set(spriteName, res);
+    return res;
+  }
+
+  function getTroopBaseScale(spriteName?: string): number {
+    if (!spriteName) return 0.42;
+    if (spriteName === "sprDragon") return 1.55;
+    if (spriteName === "sprMinotaur1") return 1.4;
+    if (spriteName === "sprBatilisk1") return 1.35;
+    return 1.6; // 16x16 pixel sprites look crisp and charming at 1.6x
+  }
+
+  function isTroopFlying(spriteName?: string): boolean {
+    return spriteName === "sprBatilisk1" || spriteName === "sprGhost1" || spriteName === "sprDragon";
+  }
+
+  interface MiniNinjaUnit {
+    troopId: string;
+    indexInCategory: number;
+    sprite: AnimatedSprite;
+    state: "idle" | "run" | "attack";
+    offsetX: number;
+    offsetY: number;
+    attackTimer: number;
+    color: number;
+    spriteName?: string;
+    baseScale: number;
+    isFlying?: boolean;
+    floatPhase?: number;
+  }
+  const activeMiniNinjas: MiniNinjaUnit[] = [];
+
+  const FORMATION_OFFSETS: Record<string, Array<{ x: number; y: number }>> = {
+    troop_goblin_skirmisher: [
+      { x: -35, y: -12 },
+      { x: -55, y: -18 },
+      { x: -75, y: -24 }
+    ],
+    troop_batilisk_scout: [
+      { x: -45, y: -38 },
+      { x: -65, y: -44 },
+      { x: -85, y: -50 }
+    ],
+    troop_skeleton_guard: [
+      { x: -50, y: 16 },
+      { x: -70, y: 22 }
+    ],
+    troop_orc_marksman: [
+      { x: -70, y: 28 },
+      { x: -95, y: 34 }
+    ],
+    troop_lizard_monk: [
+      { x: -85, y: -18 },
+      { x: -105, y: -24 }
+    ],
+    troop_bogslium: [
+      { x: -40, y: 32 },
+      { x: -60, y: 38 }
+    ],
+    troop_ghost: [
+      { x: -100, y: 8 },
+      { x: -120, y: 14 }
+    ],
+    troop_minotaur: [
+      { x: -75, y: -35 },
+      { x: -100, y: -42 }
+    ],
+    troop_dragon: [
+      { x: -120, y: -50 }
+    ],
+    troop_spectral_samurai: [
+      { x: -38, y: 16 },
+      { x: -62, y: 24 }
+    ],
+    troop_moonshadow_archer: [
+      { x: -50, y: -18 },
+      { x: -74, y: -26 }
+    ],
+    troop_arcane_sorceress: [
+      { x: -90, y: 8 },
+      { x: -110, y: 16 }
+    ],
+    troop_valkyrie_seraph: [
+      { x: -58, y: -38 },
+      { x: -82, y: -44 }
+    ]
+  };
+
+  // 7-Layer Parallax Engine with Real-Time Ground Water Reflection
+  const parallaxEngine = new ParallaxEngine();
+  backgroundLayer.addChild(parallaxEngine.rootContainer);
+  parallaxEngine.setEra(gameState.currentEra);
+
+  let currentRenderedEra: EraId | null = gameState.currentEra;
 
   // HUD Graphics for HP bars and metrics
   const hudGfx = new Graphics();
@@ -245,6 +417,47 @@ async function initGame() {
   eraWatermark.y = 56;
   hudLayer.addChild(eraWatermark);
 
+  // Combat Interaction Flip Animation Systems
+  interface CombatFlipState {
+    active: boolean;
+    type: "attack" | "crit" | "hurt";
+    timer: number;
+    duration: number;
+    facing: number;
+  }
+
+  const heroCombatFlip: CombatFlipState = {
+    active: false,
+    type: "attack",
+    timer: 0,
+    duration: 12,
+    facing: 1
+  };
+
+  const enemyCombatFlip: CombatFlipState = {
+    active: false,
+    type: "attack",
+    timer: 0,
+    duration: 12,
+    facing: -1
+  };
+
+  function triggerHeroFlip(type: "attack" | "crit" | "hurt", facing: number) {
+    heroCombatFlip.active = true;
+    heroCombatFlip.type = type;
+    heroCombatFlip.timer = type === "crit" ? 18 : 12;
+    heroCombatFlip.duration = heroCombatFlip.timer;
+    heroCombatFlip.facing = facing;
+  }
+
+  function triggerEnemyFlip(type: "attack" | "hurt", facing: number) {
+    enemyCombatFlip.active = true;
+    enemyCombatFlip.type = type;
+    enemyCombatFlip.timer = type === "attack" ? 12 : 10;
+    enemyCombatFlip.duration = enemyCombatFlip.timer;
+    enemyCombatFlip.facing = facing;
+  }
+
   // Main PixiJS Game Loop
   app.ticker.add(ticker => {
     const delta = ticker.deltaTime;
@@ -252,7 +465,7 @@ async function initGame() {
     // Check if background needs to re-render after era switch
     if (currentRenderedEra !== gameState.currentEra) {
       currentRenderedEra = gameState.currentEra;
-      renderEraBackground(gameState.currentEra);
+      parallaxEngine.setEra(gameState.currentEra);
       eraWatermark.text = `${ERA_DATA[gameState.currentEra].name.toUpperCase()} — ${ERA_DATA[gameState.currentEra].subtitle}`;
       particles.addFloatingText(`ENTERED ${ERA_DATA[gameState.currentEra].name}!`, 640, 200, "#ffd700", 28, true);
     }
@@ -270,9 +483,10 @@ async function initGame() {
     particles.update();
 
     hudGfx.clear();
+    shadowGfx.clear();
 
     // Run Combat Engine Tick Update
-    combatEngine.updateTick(delta, logger, (lootedItem) => {
+    combatEngine.updateTick(delta, logger, () => {
       ui.updateUI();
     });
 
@@ -284,13 +498,9 @@ async function initGame() {
       return;
     }
 
-    // Target Management
+    // Target Management (perishing enemies fade away naturally before new targets spawn)
     let target = combatEngine.activeEnemy;
-    if (!target || target.hp <= 0) {
-      if (target && target.hp <= 0) {
-        tacticalCombatContainer.removeChild(target.sprite);
-        ui.updateUI();
-      }
+    if (!target && combatEngine.spawnDelayTimer <= 0) {
       target = combatEngine.spawnNextTarget(logger);
       if (target) {
         tacticalCombatContainer.addChild(target.sprite);
@@ -298,7 +508,7 @@ async function initGame() {
     }
 
     // Combat Movement & Attack Execution
-    if (target && target.hp > 0 && hero.hp > 0) {
+    if (target && target.hp > 0 && !target.isPerishing && hero.hp > 0) {
       const dx = target.sprite.x - hero.sprite.x;
       const dy = target.sprite.y - hero.sprite.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -307,77 +517,306 @@ async function initGame() {
         const rad = Math.atan2(dy, dx);
         hero.sprite.x += Math.cos(rad) * hero.speed;
         hero.sprite.y += Math.sin(rad) * hero.speed;
+        vx = Math.cos(rad) * hero.speed;
+        vy = Math.sin(rad) * hero.speed;
         if (hero.state !== "run" && hero.hurtTimer <= 0) hero.setState("run");
-        hero.sprite.scale.x = dx < 0 ? -1 : 1;
+        if (target.state !== "run" && !target.isBoss) target.setState("run");
       } else {
+        vx = 0;
+        vy = 0;
         if (hero.hurtTimer <= 0 && hero.state !== "attack") hero.setState("attack");
         if (hero.attackCooldown <= 0) {
-          combatEngine.executeHeroAttack(logger);
+          const result = combatEngine.executeHeroAttack(logger);
+          const heroFacing = dx < 0 ? -1 : 1;
+          const enemyFacing = -heroFacing;
+          triggerHeroFlip(result?.isCrit ? "crit" : "attack", heroFacing);
+          triggerEnemyFlip("hurt", enemyFacing);
           ui.updateUI();
         }
       }
 
       // Enemy counter-attack interval
       if (target.attackCooldown > 0) target.attackCooldown -= delta;
-      if (dist < 140 && target.hp > 0 && target.attackCooldown <= 0) {
+      if (dist < 140 && target.hp > 0 && !target.isPerishing && target.attackCooldown <= 0) {
         target.attackCooldown = target.attackInterval;
         combatEngine.executeEnemyAttack(logger);
+        const enemyFacing = hero.sprite.x < target.sprite.x ? -1 : 1;
+        triggerEnemyFlip("attack", enemyFacing);
+        triggerHeroFlip("hurt", -enemyFacing);
         ui.updateUI();
       }
     } else if (hero.hp > 0) {
-      // Peaceful wandering
-      wanderTimer += delta;
-      if (wanderTimer > wanderDuration) {
-        wanderTimer = 0;
-        pickNewWander();
-      }
+      // Walking through 3D parallax historical environment
+      hero.setState("run");
+      vx = 2.4;
+      vy = (455 - hero.sprite.y) * 0.08;
       hero.sprite.x += vx;
       hero.sprite.y += vy;
+      if (hero.sprite.x > 860) {
+        hero.sprite.x = 220;
+      }
+      if (target && target.state !== "idle" && !target.isBoss && !target.isPerishing) {
+        target.setState("idle");
+      }
     }
 
     // Clamp coordinates inside arena bounds
-    hero.sprite.x = Math.max(100, Math.min(1180, hero.sprite.x));
-    hero.sprite.y = Math.max(340, Math.min(640, hero.sprite.y));
+    hero.sprite.x = Math.max(120, Math.min(1160, hero.sprite.x));
+    hero.sprite.y = Math.max(410, Math.min(480, hero.sprite.y));
+
+    // Ground shadows for realistic stage grounding
+    shadowGfx.fill({ color: 0x000000, alpha: 0.35 }).ellipse(hero.sprite.x, hero.sprite.y + 36, 26, 8);
+    if (target && target.hp > 0 && !target.isPerishing) {
+      const sWidth = target.isBoss ? 56 : 24;
+      const sHeight = target.isBoss ? 16 : 8;
+      const sOffsetY = target.isBoss ? 75 : 34;
+      shadowGfx.fill({ color: 0x000000, alpha: 0.4 * target.sprite.alpha }).ellipse(target.sprite.x, target.sprite.y + sOffsetY, sWidth, sHeight);
+    }
+
+    // Calculate Base Scales & Facing Direction
+    const baseHeroScale = hero.activeForm === "arc_angel" ? 1.2 : hero.activeForm === "werewolf" ? 1.15 : hero.activeForm === "mythic_drake" ? 1.3 : 1.0;
+    const heroFacing = (target && target.hp > 0) ? (target.sprite.x < hero.sprite.x ? -1 : 1) : (vx < 0 ? -1 : 1);
+
+    // Apply Hero Flip Animation for Combat Interactions
+    if (heroCombatFlip.active) {
+      heroCombatFlip.timer -= delta;
+      const progress = 1 - Math.max(0, heroCombatFlip.timer) / heroCombatFlip.duration;
+      if (heroCombatFlip.type === "crit") {
+        // Full acrobatic 360-degree combat backflip
+        hero.sprite.rotation = progress * Math.PI * 2 * heroCombatFlip.facing;
+        const flipSquish = Math.cos(progress * Math.PI * 2);
+        hero.sprite.scale.x = heroCombatFlip.facing * baseHeroScale * (0.8 + 0.4 * flipSquish);
+        hero.sprite.scale.y = baseHeroScale * (1 + 0.25 * Math.sin(progress * Math.PI));
+        hero.sprite.y -= Math.sin(progress * Math.PI) * 20;
+      } else if (heroCombatFlip.type === "attack") {
+        // Strike flip lunge & scale squish
+        hero.sprite.rotation = Math.sin(progress * Math.PI) * 0.28 * heroCombatFlip.facing;
+        const flipFactor = Math.cos(progress * Math.PI);
+        hero.sprite.scale.x = heroCombatFlip.facing * baseHeroScale * (flipFactor > 0 ? 1.2 : -0.9);
+        hero.sprite.scale.y = baseHeroScale * (1.15 - 0.15 * Math.sin(progress * Math.PI));
+      } else if (heroCombatFlip.type === "hurt") {
+        // Hit recoil tilt
+        hero.sprite.rotation = -heroCombatFlip.facing * 0.25 * Math.sin(progress * Math.PI);
+        hero.sprite.scale.x = heroCombatFlip.facing * baseHeroScale * 0.85;
+        hero.sprite.scale.y = baseHeroScale * 1.1;
+      }
+
+      if (heroCombatFlip.timer <= 0) {
+        heroCombatFlip.active = false;
+        hero.sprite.rotation = 0;
+        hero.sprite.scale.set(baseHeroScale);
+        hero.sprite.scale.x = heroFacing * baseHeroScale;
+      }
+    } else {
+      hero.sprite.rotation = 0;
+      hero.sprite.scale.x = heroFacing * baseHeroScale;
+      hero.sprite.scale.y = baseHeroScale;
+    }
+
+    // Apply Enemy Flip Animation & Facing
+    if (target && target.hp > 0) {
+      const baseEnemyScale = target.baseScale;
+      const enemyFacing = hero.sprite.x < target.sprite.x ? -1 : 1;
+
+      if (enemyCombatFlip.active) {
+        enemyCombatFlip.timer -= delta;
+        const progress = 1 - Math.max(0, enemyCombatFlip.timer) / enemyCombatFlip.duration;
+        if (enemyCombatFlip.type === "attack") {
+          // Forward attack lunge tilt
+          target.sprite.rotation = Math.sin(progress * Math.PI) * 0.3 * enemyCombatFlip.facing;
+          target.sprite.scale.x = enemyCombatFlip.facing * baseEnemyScale * (1 + 0.25 * Math.sin(progress * Math.PI));
+          target.sprite.scale.y = baseEnemyScale * (1.1 - 0.1 * Math.sin(progress * Math.PI));
+        } else if (enemyCombatFlip.type === "hurt") {
+          // Hit recoil flip: tilts backward and inverts/squishes scale horizontally
+          target.sprite.rotation = -enemyCombatFlip.facing * 0.32 * Math.sin(progress * Math.PI);
+          const hitFlipFactor = Math.cos(progress * Math.PI);
+          target.sprite.scale.x = enemyCombatFlip.facing * baseEnemyScale * (hitFlipFactor > 0 ? 0.8 : -0.7);
+          target.sprite.scale.y = baseEnemyScale * (1.2 - 0.2 * Math.sin(progress * Math.PI));
+        }
+
+        if (enemyCombatFlip.timer <= 0) {
+          enemyCombatFlip.active = false;
+          target.sprite.rotation = 0;
+          target.sprite.scale.set(baseEnemyScale);
+          target.sprite.scale.x = enemyFacing * baseEnemyScale;
+        }
+      } else {
+        target.sprite.rotation = 0;
+        target.sprite.scale.x = enemyFacing * baseEnemyScale;
+        target.sprite.scale.y = baseEnemyScale;
+      }
+
+      target.sprite.zIndex = target.sprite.y;
+    }
+
+    hero.sprite.zIndex = hero.sprite.y;
 
     // Render Real-time HUD Health & XP Bars
     const maxHp = hero.getEffectiveMaxHp();
     drawBar(hero.sprite.x, hero.sprite.y + 44, hero.hp, maxHp, 70, 7, 0x2ea043);
     drawBar(hero.sprite.x, hero.sprite.y + 53, hero.xp, hero.maxXp, 70, 4, 0x1f6feb);
 
-    // Render Transformation Halo / Wings Aura
+    // Render Transformation Dynamic Aura (Pure celestial particles, no vector circle)
     if (hero.isTransformed) {
-      const auraCol = hero.activeForm === "arc_angel" ? 0xffd700 : hero.activeForm === "werewolf" ? 0xff4444 : 0xbb86fc;
-      hudGfx.stroke({ width: 2, color: auraCol, alpha: 0.85 + Math.sin(Date.now() / 150) * 0.15 });
-      hudGfx.circle(hero.sprite.x, hero.sprite.y - 10, 48);
-      // Angelic Wing Flurry particles
-      if (Math.random() < 0.25) {
-        particles.addFloatingText("✨", hero.sprite.x + (Math.random() * 60 - 30), hero.sprite.y - 40, "#ffd700", 16);
+      particles.emitFormAura(hero.activeForm, hero.sprite.x, hero.sprite.y);
+    }
+
+    // Synchronize and Render Mini-Ninja Squadron Formations
+    for (const troop of hero.troops) {
+      const targetCount = troop.count || 0;
+      const currentOfTroop = activeMiniNinjas.filter(u => u.troopId === troop.id);
+
+      // Check if this troop just executed an attack
+      const didAttack = (troop as any).attackTrigger === true;
+      if (didAttack) {
+        (troop as any).attackTrigger = false;
+      }
+
+      // Add new companion minions when player recruits them
+      while (currentOfTroop.length < targetCount) {
+        const unitIdx = currentOfTroop.length;
+        const offsets = FORMATION_OFFSETS[troop.id] || [{ x: -40, y: 0 }, { x: -70, y: 10 }];
+        const offset = offsets[unitIdx % offsets.length];
+
+        const spriteName = troop.spriteName;
+        const isDepthsTroop = !!spriteName;
+        const textures = isDepthsTroop ? getDepthsTroopFrames(spriteName) : miniNinjaIdle;
+        const baseScale = getTroopBaseScale(spriteName);
+        const flying = isTroopFlying(spriteName);
+
+        const ninjaSprite = new AnimatedSprite(getSafeTextures(textures));
+        ninjaSprite.anchor.set(0.5, 0.5);
+        ninjaSprite.scale.set(baseScale);
+        if (!isDepthsTroop) {
+          ninjaSprite.tint = troop.color;
+        }
+        ninjaSprite.animationSpeed = isDepthsTroop ? 0.16 : 0.12;
+        ninjaSprite.play();
+
+        ninjaSprite.x = hero.sprite.x + offset.x;
+        ninjaSprite.y = hero.sprite.y + offset.y;
+        tacticalCombatContainer.addChild(ninjaSprite);
+
+        const newUnit: MiniNinjaUnit = {
+          troopId: troop.id,
+          indexInCategory: unitIdx,
+          sprite: ninjaSprite,
+          state: "idle",
+          offsetX: offset.x,
+          offsetY: offset.y,
+          attackTimer: 0,
+          color: troop.color,
+          spriteName,
+          baseScale,
+          isFlying: flying,
+          floatPhase: Math.random() * Math.PI * 2
+        };
+        activeMiniNinjas.push(newUnit);
+        currentOfTroop.push(newUnit);
+      }
+
+      // Remove minions if count reduced (e.g., reset)
+      while (currentOfTroop.length > targetCount) {
+        const removed = currentOfTroop.pop()!;
+        const idx = activeMiniNinjas.indexOf(removed);
+        if (idx !== -1) activeMiniNinjas.splice(idx, 1);
+        tacticalCombatContainer.removeChild(removed.sprite);
+        removed.sprite.destroy();
+      }
+
+      // Trigger combat strike lunge for units of this category
+      if (didAttack) {
+        if (troop.spriteName === "sprBatilisk1") soundEngine.playBatiliskWing();
+        else if (troop.spriteName === "sprOrcArcher") soundEngine.playDepthsSound("sndArrow");
+        else if (troop.spriteName === "sprBogslium1") soundEngine.playDepthsSound("sndAcidShot");
+        else if (troop.spriteName === "sprMinotaur1" || troop.spriteName === "sprDragon") soundEngine.playDepthsSound("sndLargeAttack");
+        else soundEngine.playDepthsSound("sndAttackStab");
+
+        for (const unit of currentOfTroop) {
+          unit.attackTimer = 16;
+          if (!unit.spriteName && miniNinjaAttack.length > 0) {
+            unit.sprite.textures = getSafeTextures(miniNinjaAttack);
+            unit.sprite.animationSpeed = 0.2;
+            unit.sprite.play();
+            unit.state = "attack";
+          }
+        }
       }
     }
 
-    // Render Companion Troops Marching Formations
-    let troopOffsetIdx = 0;
-    hero.troops.forEach(t => {
-      if (t.count > 0) {
-        troopOffsetIdx++;
-        const ox = (troopOffsetIdx % 2 === 0 ? -1 : 1) * (35 + (troopOffsetIdx * 16));
-        const oy = 10 + (troopOffsetIdx * 10);
-        const tx = hero.sprite.x + (hero.sprite.scale.x < 0 ? -ox : ox);
-        const ty = hero.sprite.y + oy;
+    // Update Companions Positions, Shadows, and Animation Cycles
+    for (const ninja of activeMiniNinjas) {
+      const facing = heroFacing;
+      const targetX = hero.sprite.x + (facing * ninja.offsetX);
+      let targetY = hero.sprite.y + ninja.offsetY;
 
-        // Draw Troop Avatar Node
-        hudGfx.fill(t.color).circle(tx, ty, 7);
-        hudGfx.stroke({ width: 1.5, color: 0xffffff, alpha: 0.8 });
-        hudGfx.circle(tx, ty, 7);
+      if (ninja.isFlying) {
+        ninja.floatPhase = (ninja.floatPhase || 0) + delta * 0.08;
+        targetY += Math.sin(ninja.floatPhase) * 6;
       }
-    });
 
-    if (target && target.hp > 0) {
+      if (ninja.attackTimer > 0) {
+        ninja.attackTimer -= delta;
+        const progress = 1 - Math.max(0, ninja.attackTimer) / 16;
+        const lungeDist = Math.sin(progress * Math.PI) * 28;
+        ninja.sprite.x += (targetX + (facing * lungeDist) - ninja.sprite.x) * 0.25;
+        ninja.sprite.y += (targetY - ninja.sprite.y) * 0.25;
+        ninja.sprite.scale.y = ninja.baseScale * (1 + 0.15 * Math.sin(progress * Math.PI));
+
+        if (ninja.attackTimer <= 0) {
+          ninja.state = "idle";
+          if (!ninja.spriteName && miniNinjaIdle.length > 0) {
+            ninja.sprite.textures = getSafeTextures(miniNinjaIdle);
+            ninja.sprite.animationSpeed = 0.12;
+            ninja.sprite.play();
+          }
+        }
+      } else {
+        // Marching glide towards tactical formation
+        ninja.sprite.x += (targetX - ninja.sprite.x) * 0.14;
+        ninja.sprite.y += (targetY - ninja.sprite.y) * 0.14;
+        ninja.sprite.scale.y = ninja.baseScale;
+
+        if (hero.state === "run") {
+          if (ninja.state !== "run") {
+            ninja.state = "run";
+            if (!ninja.spriteName && miniNinjaRun.length > 0) {
+              ninja.sprite.textures = getSafeTextures(miniNinjaRun);
+              ninja.sprite.animationSpeed = 0.18;
+              ninja.sprite.play();
+            }
+          }
+        } else {
+          if (ninja.state !== "idle") {
+            ninja.state = "idle";
+            if (!ninja.spriteName && miniNinjaIdle.length > 0) {
+              ninja.sprite.textures = getSafeTextures(miniNinjaIdle);
+              ninja.sprite.animationSpeed = 0.12;
+              ninja.sprite.play();
+            }
+          }
+        }
+      }
+
+      ninja.sprite.scale.x = facing * ninja.baseScale;
+      ninja.sprite.zIndex = ninja.sprite.y;
+
+      // Draw Companion ground shadow
+      const shadowRadiusX = ninja.baseScale > 1.2 ? 14 : 9;
+      shadowGfx.fill({ color: 0x000000, alpha: ninja.isFlying ? 0.22 : 0.35 }).ellipse(ninja.sprite.x, hero.sprite.y + ninja.offsetY + 16, shadowRadiusX, 4);
+    }
+
+    if (target && target.hp > 0 && !target.isPerishing) {
       const barW = target.isBoss ? 160 : 75;
       const barH = target.isBoss ? 10 : 7;
       const barY = target.sprite.y + (target.isBoss ? 90 : 44);
       drawBar(target.sprite.x, barY, target.hp, target.maxHp, barW, barH, target.isBoss ? 0xda3633 : 0xff7b72);
     }
+
+    // Update 7 independent parallax layers and real-time ground reflection
+    const isWalking = hero.state === "run" || Math.abs(vx) > 0.1;
+    const walkSpeed = Math.sqrt(vx * vx + vy * vy) || 2.4;
+    parallaxEngine.update(delta, isWalking, walkSpeed, heroFacing, hero, combatEngine.activeEnemy, activeMiniNinjas);
 
     // Sync HTML Sidebars and Header
     syncExternalLayout();
@@ -429,8 +868,8 @@ async function initGame() {
     }
   }
 
-  // Hook sidebar summon boss button
-  const summonBtn = document.getElementById("sidebar-summon-boss-btn");
+  // Global Quick Action Buttons in Top Bar
+  const summonBtn = document.getElementById("header-summon-boss-btn") || document.getElementById("sidebar-summon-boss-btn");
   if (summonBtn) {
     summonBtn.onclick = () => {
       combatEngine.bossMode = true;
@@ -440,6 +879,29 @@ async function initGame() {
       ui.updateUI();
     };
   }
+
+  const surgeChiBtn = document.getElementById("header-surge-chi-btn");
+  if (surgeChiBtn) {
+    surgeChiBtn.onclick = () => {
+      if (hero.canTransform("arc_angel")) {
+        hero.transform("arc_angel", 20);
+        particles.addFloatingText("⚡ ARC ANGEL SURGE! ⚡", hero.sprite.x, hero.sprite.y - 70, "#ffd700", 28, true);
+        soundEngine.playLevelUp();
+      } else {
+        ui.openTab("chi");
+      }
+    };
+  }
+
+  // Hook all top quick navigation buttons to open respective screens
+  document.querySelectorAll(".quick-nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.getAttribute("data-tab");
+      if (tab) {
+        ui.toggleTab(tab as any);
+      }
+    });
+  });
 
   logger.printLine("Welcome to Mythic Human History: Idle RPG.", "#ffd700");
   logger.printLine(`Era of Dawn active. Defeat elemental spirits and harvest Era-Energy!`, "#58a6ff");

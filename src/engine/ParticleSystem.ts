@@ -99,9 +99,40 @@ export class ParticleSystem {
       text: txt,
       vx: (Math.random() - 0.5) * 1.2,
       vy: isCrit ? -2.6 : -1.6,
-      life: isCrit ? 70 : 55,
-      maxLife: isCrit ? 70 : 55
+      life: isCrit ? 55 : 45,
+      maxLife: isCrit ? 55 : 45
     });
+
+    // Keep screen clean: cap floating texts so combat never gets too busy
+    if (this.floatingTexts.length > 10) {
+      const oldest = this.floatingTexts[0];
+      if (oldest.life > 10) {
+        oldest.life = 10;
+      }
+    }
+  }
+
+  public spawnSoulDissolve(x: number, y: number, colorHex: number = 0xbb86fc, count: number = 18) {
+    for (let i = 0; i < count; i++) {
+      const g = new Graphics();
+      const r = 2.5 + Math.random() * 3.5;
+      g.fill({ color: colorHex, alpha: 0.85 }).circle(0, 0, r);
+      g.x = x + (Math.random() - 0.5) * 36;
+      g.y = y + (Math.random() - 0.5) * 36;
+
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.2; // Rises softly upwards
+      const speed = 1.0 + Math.random() * 2.2;
+
+      this.container.addChild(g);
+      this.particles.push({
+        gfx: g,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 40 + Math.random() * 25,
+        maxLife: 65,
+        decayAlpha: true
+      });
+    }
   }
 
   public spawnSpellEffect(x: number, y: number, colorHex: number, count: number = 24, type: string = "burst") {
@@ -238,6 +269,144 @@ export class ParticleSystem {
         maxLife: 50,
         decayAlpha: true
       });
+    }
+  }
+
+  public triggerAngelAscension(x: number, y: number) {
+    // 1. Radiant holy golden screen flash
+    this.triggerScreenFlash(0xffea75, 26, 0.4);
+
+    // 2. Concentric expanding golden shockwaves
+    const shockCols = [0xffd700, 0xffffff, 0xfffa88];
+    shockCols.forEach((col, idx) => {
+      const g = new Graphics();
+      this.container.addChild(g);
+      this.shockwaves.push({
+        gfx: g,
+        x,
+        y: y - 10,
+        radius: 14 + idx * 10,
+        speed: 6.0 + idx * 2.0,
+        lineWidth: 5 - idx,
+        color: col,
+        life: 32 + idx * 4,
+        maxLife: 32 + idx * 4
+      });
+    });
+
+    // 3. Ascending vertical holy light pillars
+    for (let i = 0; i < 28; i++) {
+      const g = new Graphics();
+      const beamW = 2 + Math.random() * 4;
+      const beamH = 24 + Math.random() * 48;
+      g.fill(i % 2 === 0 ? 0xffea75 : 0xffffff).rect(-beamW / 2, -beamH / 2, beamW, beamH);
+      g.x = x + (Math.random() - 0.5) * 70;
+      g.y = y + 20 + Math.random() * 30;
+      this.container.addChild(g);
+      this.particles.push({
+        gfx: g,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: -5.5 - Math.random() * 6,
+        life: 35 + Math.random() * 20,
+        maxLife: 55,
+        decayAlpha: true
+      });
+    }
+
+    // 4. Radial burst of golden celestial diamond stars & holy sparks
+    for (let i = 0; i < 44; i++) {
+      const g = new Graphics();
+      const col = i % 3 === 0 ? 0xffd700 : i % 3 === 1 ? 0xfffae0 : 0xffaa00;
+      const sz = 3 + Math.random() * 4;
+      g.fill(col);
+      // 4-point diamond star
+      g.poly([0, -sz * 1.6, sz * 0.5, 0, 0, sz * 1.6, -sz * 0.5, 0]);
+      g.x = x;
+      g.y = y - 10;
+      const angle = (Math.PI * 2 * i) / 44 + (Math.random() - 0.5) * 0.2;
+      const speed = 2.8 + Math.random() * 6.5;
+      this.container.addChild(g);
+      this.particles.push({
+        gfx: g,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.5,
+        life: 40 + Math.random() * 25,
+        maxLife: 65,
+        decayAlpha: true,
+        gravity: 0.05
+      });
+    }
+
+    this.addFloatingText("✦ ARC ANGEL ASCENSION ✦", x, y - 60, "#ffd700", 22, true);
+  }
+
+  public emitAngelAura(x: number, y: number) {
+    // Shimmering divine golden motes gently ascending and wavering
+    if (Math.random() < 0.7) {
+      const g = new Graphics();
+      const isStar = Math.random() < 0.45;
+      const sz = 2 + Math.random() * 3;
+      const col = Math.random() < 0.5 ? 0xffd700 : 0xfffa90;
+      g.fill(col);
+      if (isStar) {
+        g.poly([0, -sz * 1.5, sz * 0.4, 0, 0, sz * 1.5, -sz * 0.4, 0]);
+      } else {
+        g.circle(0, 0, sz);
+      }
+      g.x = x + (Math.random() - 0.5) * 46;
+      g.y = y + (Math.random() - 0.5) * 38;
+      this.container.addChild(g);
+      this.particles.push({
+        gfx: g,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: -1.3 - Math.random() * 1.8,
+        life: 25 + Math.random() * 20,
+        maxLife: 45,
+        decayAlpha: true
+      });
+    }
+
+    // Occasional wing flurry sparkle
+    if (Math.random() < 0.15) {
+      this.addFloatingText("✨", x + (Math.random() * 50 - 25), y - 32, "#ffd700", 15);
+    }
+  }
+
+  public emitFormAura(form: string, x: number, y: number) {
+    if (form === "arc_angel") {
+      this.emitAngelAura(x, y);
+    } else if (form === "werewolf") {
+      if (Math.random() < 0.5) {
+        const g = new Graphics();
+        g.fill(0xff3333).circle(0, 0, 2.5);
+        g.x = x + (Math.random() - 0.5) * 40;
+        g.y = y + (Math.random() - 0.5) * 30;
+        this.container.addChild(g);
+        this.particles.push({
+          gfx: g,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: -1.5 - Math.random() * 1.5,
+          life: 20 + Math.random() * 15,
+          maxLife: 35,
+          decayAlpha: true
+        });
+      }
+    } else if (form === "mythic_drake") {
+      if (Math.random() < 0.55) {
+        const g = new Graphics();
+        g.fill(Math.random() < 0.5 ? 0xff7700 : 0xffbb00).circle(0, 0, 3);
+        g.x = x + (Math.random() - 0.5) * 44;
+        g.y = y + (Math.random() - 0.5) * 32;
+        this.container.addChild(g);
+        this.particles.push({
+          gfx: g,
+          vx: (Math.random() - 0.5) * 1.8,
+          vy: -2 - Math.random() * 2,
+          life: 22 + Math.random() * 18,
+          maxLife: 40,
+          decayAlpha: true
+        });
+      }
     }
   }
 
