@@ -1,0 +1,6 @@
+{
+  "name": "Shadow Requiem: Dark Fantasy Combat RPG",
+  "description": "Dark fantasy physics-driven combat RPG featuring fluid skeletal martial arts, deep weapon customization, RPG gear progression, fighter roster character unlocks from boss battles, faction fighting styles, storyline acts, and multiplayer arenas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
