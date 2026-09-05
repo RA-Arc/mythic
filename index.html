@@ -396,6 +396,9 @@
 </head>
 <body>
   <div id="app-container">
+    <!-- React Hybrid Shadow Requiem Host -->
+    <div id="react-shadow-requiem-root"></div>
+
     <!-- Top Header -->
     <header id="app-header">
       <div class="header-branding">
@@ -429,6 +432,18 @@
     <main id="main-content-layout">
       <!-- Screen Dock Navigation (Click to open any screen: Equipment, Inventory, Mini-Ninjas, Forge, etc.) -->
       <nav id="screen-dock-nav" aria-label="Game Screens Navigation">
+        <button class="quick-nav-btn btn-highlight" id="dock-btn-choose-champ" onclick="window.openCharacterSelectModal &amp;&amp; window.openCharacterSelectModal()" title="Choose or switch starting champion">
+          <span style="color: #ffd700;">⚔️</span>
+          <span>Choose Champion</span>
+        </button>
+        <button class="quick-nav-btn" id="dock-btn-char-builder" onclick="window.openCharacterBuilder &amp;&amp; window.openCharacterBuilder()" title="Manual Character Building, Weapons, Armor &amp; Forge">
+          <span style="color: #f97316;">🥋</span>
+          <span>Character Builder</span>
+        </button>
+        <button class="quick-nav-btn btn-gold" id="dock-btn-manual-duel" onclick="window.openManualCombatArena &amp;&amp; window.openManualCombatArena()" title="Manual Real-Time Combat Physics Arena">
+          <span style="color: #ef4444;">⚡</span>
+          <span>Manual Combat Arena</span>
+        </button>
         <button class="quick-nav-btn btn-highlight" data-tab="hero" title="View Hero Profile, Stats & 16-Slot Equipment">
           <span>👤</span>
           <span>Hero & Equipment</span>

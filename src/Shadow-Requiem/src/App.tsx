@@ -411,9 +411,7 @@ export default function App() {
               <button
                 id="nav-tab-roster"
                 onClick={() => setCurrentTab('roster')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  currentTab === 'roster' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' : 'text-neutral-400 hover:text-neutral-200'
-                }`}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-neutral-400 hover:text-neutral-200"
               >
                 <Users className="w-3.5 h-3.5 text-purple-400" />
                 Fighters ({profile.unlockedCharacterIds.length}/{PLAYABLE_CHARACTERS.length})
@@ -421,9 +419,7 @@ export default function App() {
               <button
                 id="nav-tab-marketplace"
                 onClick={() => setCurrentTab('marketplace')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  currentTab === 'marketplace' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'text-amber-400/90 hover:text-amber-300 bg-amber-500/10 border border-amber-500/20'
-                }`}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-amber-400/90 hover:text-amber-300 bg-amber-500/10 border border-amber-500/20"
               >
                 <ShoppingBag className="w-3.5 h-3.5 text-amber-400" /> Marketplace
               </button>

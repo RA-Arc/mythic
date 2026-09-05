@@ -24,9 +24,12 @@ export const TalentsView: React.FC<TalentsViewProps> = ({
   onUpdateProfile,
   onBack,
 }) => {
+  const [talentMsg, setTalentMsg] = React.useState<string | null>(null);
+
   const handleUnlockPerk = (perkId: string, costCores: number, costGold: number) => {
     if (profile.shadowCores < costCores || profile.gold < costGold) {
-      alert(`Need ${costCores} Shadow Cores and ${costGold} Gold to unlock this talent.`);
+      setTalentMsg(`Need ${costCores} Shadow Cores and ${costGold} Gold to unlock this talent.`);
+      setTimeout(() => setTalentMsg(null), 3500);
       return;
     }
 
@@ -72,6 +75,11 @@ export const TalentsView: React.FC<TalentsViewProps> = ({
 
       {/* Main Talents Trees */}
       <div className="flex-1 max-w-6xl w-full mx-auto p-6 flex flex-col gap-6">
+        {talentMsg && (
+          <div className="px-4 py-2.5 rounded-xl bg-red-950/80 border border-red-800 text-red-300 text-xs font-semibold shadow-lg animate-pulse">
+            ⚠️ {talentMsg}
+          </div>
+        )}
         
         {/* Faction Trees Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

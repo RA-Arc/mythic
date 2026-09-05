@@ -232,6 +232,43 @@ export class CombatEngine {
       this.hero.heal(leechAmt);
       this.particles.addFloatingText(`+${leechAmt} Leech`, this.hero.sprite.x, this.hero.sprite.y - 50, "#ff4444", 18);
     }
+
+    // Shadow Requiem Weapon Dynamics Triggers
+    const shadowWpn = this.hero.equippedShadowWeapon;
+    if (shadowWpn) {
+      // Kusarigama / Lifesteal Perk: restores health
+      if (shadowWpn.weaponType === 'kusarigama' || shadowWpn.perks?.includes('perk_lifesteal') || this.hero.unlockedPerks?.includes('perk_lifesteal')) {
+        const stealHp = Math.max(1, Math.floor(actualDmg * 0.12));
+        this.hero.heal(stealHp);
+        this.particles.addFloatingText(`+${stealHp} HP Vampiric`, this.hero.sprite.x, this.hero.sprite.y - 65, "#34d399", 16);
+      }
+
+      // Warhammer: Tectonic Sunder
+      if (shadowWpn.weaponType === 'warhammer') {
+        this.particles.spawnSpellEffect(this.activeEnemy.sprite.x, this.activeEnemy.sprite.y, 0xf97316, 15);
+        this.particles.addFloatingText("SUNDER -30% DEF", this.activeEnemy.sprite.x, this.activeEnemy.sprite.y - 65, "#fb923c", 16);
+      }
+
+      // Katana: Iaido Execution
+      if (shadowWpn.weaponType === 'katana' && isCrit) {
+        this.particles.spawnSpellEffect(this.activeEnemy.sprite.x, this.activeEnemy.sprite.y, 0xa855f7, 20);
+        this.particles.addFloatingText("⚡ IAIDO EXECUTION", this.hero.sprite.x, this.hero.sprite.y - 75, "#c084fc", 18, true);
+      }
+
+      // Nunchaku: Combo Chi Surge
+      if (shadowWpn.weaponType === 'nunchaku') {
+        this.gameState.currencies.eraEnergy += 4;
+        if (Math.random() < 0.3) {
+          this.particles.addFloatingText("CHI FLURRY +4", this.hero.sprite.x, this.hero.sprite.y - 55, "#38bdf8", 16);
+        }
+      }
+
+      // Greatsword: Unbreakable Cleave
+      if (shadowWpn.weaponType === 'greatsword' && Math.random() < 0.25) {
+        this.particles.addFloatingText("POISE CLEAVE", this.hero.sprite.x, this.hero.sprite.y - 55, "#facc15", 16);
+      }
+    }
+
     this.particles.addFloatingText(
       isCrit ? `CRIT -${actualDmg}!` : `-${actualDmg}`,
       this.activeEnemy.sprite.x,

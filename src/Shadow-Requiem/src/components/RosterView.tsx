@@ -260,7 +260,7 @@ export const RosterView: React.FC<RosterViewProps> = ({
                           {char.faction}
                         </span>
                         <span className="text-[11px] text-neutral-400">
-                          {char.signatureWeapon.weaponType.replace('_', ' ')}
+                          {(char.signatureWeapon?.weaponType || 'katana').replace('_', ' ')}
                         </span>
                       </div>
                     </div>
@@ -526,7 +526,7 @@ export const RosterView: React.FC<RosterViewProps> = ({
                   <Sword className="w-3.5 h-3.5 text-amber-400" /> Signature Armament
                 </span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">
-                  {selectedChar.signatureWeapon.weaponType.replace('_', ' ')}
+                  {(selectedChar.signatureWeapon?.weaponType || 'katana').replace('_', ' ')}
                 </span>
               </div>
               <h5 className="font-cinzel text-sm font-bold text-amber-300">

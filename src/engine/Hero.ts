@@ -3,6 +3,7 @@ import { RPGItem, EquipSlot, CosmicForce, EraId, TransformationType, CompanionTr
 import { INITIAL_COMPANION_TROOPS } from "./data/troops";
 import { INITIAL_ROGUE_RELICS } from "./data/relics";
 import { getSafeTextures } from "./safeTexture";
+import { GearItem, PlayerProfile, Faction } from "../Shadow-Requiem/src/game/types";
 
 export type HeroState =
   | "idle"
@@ -111,6 +112,29 @@ export class Hero {
 
   // Bag items (names / ids)
   inventory: RPGItem[] = [];
+
+  // Shadow Requiem Champion & Weapon Dynamics Matrix
+  activeCharacterId: string = "char_raven";
+  activeCharacterName: string = "Shadow Raven";
+  activeCharacterTitle: string = "Rift Walker";
+  activeFaction: Faction = "heralds";
+  equippedShadowWeapon: GearItem | null = null;
+  equippedShadowHelm: GearItem | null = null;
+  equippedShadowArmor: GearItem | null = null;
+  equippedShadowRanged: GearItem | null = null;
+  unlockedPerks: string[] = [];
+
+  public applyShadowRequiemProfile(profile: PlayerProfile) {
+    this.activeCharacterId = profile.activeCharacterId || "char_raven";
+    this.activeCharacterName = profile.name || "Shadow Raven";
+    this.activeCharacterTitle = profile.title || "Rift Walker";
+    this.activeFaction = profile.factionAffinity || "heralds";
+    this.equippedShadowWeapon = profile.equipped?.weapon || null;
+    this.equippedShadowHelm = profile.equipped?.helm || null;
+    this.equippedShadowArmor = profile.equipped?.armor || null;
+    this.equippedShadowRanged = profile.equipped?.ranged || null;
+    this.unlockedPerks = profile.unlockedPerks || [];
+  }
 
   constructor() {
     this.loadBaseAnimations();
@@ -330,8 +354,23 @@ export class Hero {
       }
     });
 
+    // Shadow Requiem weapon power & dynamic bonuses
+    let shadowWpnBonus = 0;
+    if (this.equippedShadowWeapon) {
+      shadowWpnBonus += (this.equippedShadowWeapon.attackBonus || 0);
+      shadowWpnBonus += Math.floor((this.equippedShadowWeapon.basePower || 0) * 0.45);
+    }
+    if (this.equippedShadowRanged) {
+      shadowWpnBonus += (this.equippedShadowRanged.attackBonus || 0);
+    }
+
     const relicBonus = this.getRelicBonus("damagePercent") / 100;
-    const totalRaw = (this.baseDmg + bonus + traitBonus) * (1 + relicBonus);
+    let totalRaw = (this.baseDmg + bonus + shadowWpnBonus + traitBonus) * (1 + relicBonus);
+    
+    // Weapon dynamic power scaling
+    if (this.equippedShadowWeapon?.weaponType === 'greatsword') totalRaw *= 1.35;
+    else if (this.equippedShadowWeapon?.weaponType === 'warhammer') totalRaw *= 1.45;
+
     let formMult = 1.0;
 
     if (this.activeForm === "arc_angel") formMult = 3.0;
@@ -350,8 +389,14 @@ export class Hero {
       }
     });
 
+    // Shadow Requiem armor vitality
+    let shadowHpBonus = 0;
+    if (this.equippedShadowArmor) {
+      shadowHpBonus += Math.floor((this.equippedShadowArmor.basePower || 0) * 0.6);
+    }
+
     const relicBonus = this.getRelicBonus("hpPercent") / 100;
-    const totalRaw = (this.maxHp + bonus + traitBonus) * (1 + relicBonus);
+    const totalRaw = (this.maxHp + bonus + shadowHpBonus + traitBonus) * (1 + relicBonus);
     let formMult = 1.0;
 
     if (this.activeForm === "arc_angel") formMult = 2.5;
@@ -370,10 +415,16 @@ export class Hero {
       }
     });
 
+    // Shadow Requiem armor, helm and weapon defense
+    let shadowDef = 0;
+    if (this.equippedShadowArmor) shadowDef += (this.equippedShadowArmor.defenseBonus || 0);
+    if (this.equippedShadowHelm) shadowDef += (this.equippedShadowHelm.defenseBonus || 0);
+    if (this.equippedShadowWeapon) shadowDef += (this.equippedShadowWeapon.defenseBonus || 0);
+
     const relicDef = this.getRelicBonus("defensePercent") / 100;
     const formDefBonus = this.activeForm === "arc_angel" ? 100 : this.activeForm === "werewolf" ? 40 : 80;
 
-    return Math.floor((bonus + traitBonus + formDefBonus) * (1 + relicDef) * memoryMultiplier);
+    return Math.floor((bonus + shadowDef + traitBonus + formDefBonus) * (1 + relicDef) * memoryMultiplier);
   }
 
   getCritRate(traitBonus: number = 0, memoryBonus: number = 0): number {
@@ -381,6 +432,14 @@ export class Hero {
     Object.values(this.equipment).forEach(item => {
       if (item?.critRateBonus) rate += item.critRateBonus;
     });
+
+    if (this.equippedShadowWeapon?.critChance) {
+      rate += Math.round(this.equippedShadowWeapon.critChance * 100);
+    }
+    if (this.equippedShadowHelm?.critChance) {
+      rate += Math.round(this.equippedShadowHelm.critChance * 100);
+    }
+
     if (this.activeForm === "arc_angel") rate += 45;
     else if (this.activeForm === "werewolf") rate += 35;
     return Math.min(95, rate);
@@ -391,6 +450,11 @@ export class Hero {
     Object.values(this.equipment).forEach(item => {
       if (item?.critDmgBonus) mult += item.critDmgBonus / 100;
     });
+
+    if (this.unlockedPerks.includes('perk_crit_damage') || this.equippedShadowWeapon?.perks?.includes('perk_crit_damage')) {
+      mult += 0.55;
+    }
+
     if (this.activeForm === "arc_angel") mult += 1.5;
     return mult;
   }
@@ -402,6 +466,23 @@ export class Hero {
     });
 
     let interval = Math.max(16, 45 - Math.floor(hasteBonus * 0.4));
+
+    // Weapon dynamic attack speed
+    const wType = this.equippedShadowWeapon?.weaponType;
+    if (wType === 'nunchaku') {
+      interval = Math.max(10, Math.floor(interval * 0.65));
+    } else if (wType === 'dual_daggers') {
+      interval = Math.max(10, Math.floor(interval * 0.62));
+    } else if (wType === 'katana') {
+      interval = Math.max(12, Math.floor(interval * 0.78));
+    } else if (wType === 'kusarigama') {
+      interval = Math.floor(interval * 0.9);
+    } else if (wType === 'greatsword') {
+      interval = Math.floor(interval * 1.35);
+    } else if (wType === 'warhammer') {
+      interval = Math.floor(interval * 1.4);
+    }
+
     if (this.activeForm === "arc_angel") interval = Math.max(12, Math.floor(interval * 0.55));
     else if (this.activeForm === "werewolf") interval = Math.max(14, Math.floor(interval * 0.65));
 

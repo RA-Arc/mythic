@@ -1,5 +1,5 @@
 import { FighterEntity, SkeletalPose, CombatAction, AttackFrame, ParticleEffect } from './types';
-import { BASE_IDLE_POSE, BLOCK_POSE, CROUCH_POSE, HIT_LIGHT_POSE, KNOCKDOWN_POSE, generateKatanaMoveSet, generateGreatswordMoveSet } from './weapons';
+import { BASE_IDLE_POSE, BLOCK_POSE, CROUCH_POSE, HIT_LIGHT_POSE, KNOCKDOWN_POSE, getMoveSetByWeaponType } from './weapons';
 
 export const ARENA_WIDTH = 1000;
 export const GROUND_Y = 380;
@@ -37,10 +37,7 @@ export function lerpPose(poseA: SkeletalPose, poseB: SkeletalPose, t: number): S
 }
 
 export function getMoveSetForFighter(fighter: FighterEntity) {
-  if (fighter.equipment.weapon.weaponType === 'greatsword' || fighter.equipment.weapon.weaponType === 'warhammer') {
-    return generateGreatswordMoveSet();
-  }
-  return generateKatanaMoveSet();
+  return getMoveSetByWeaponType(fighter.equipment.weapon?.weaponType || 'katana');
 }
 
 // Evaluate active pose and hitbox from attack frame sequence

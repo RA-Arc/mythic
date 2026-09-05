@@ -40,6 +40,7 @@ export const CustomizationView: React.FC<CustomizationViewProps> = ({
   const [activeSlot, setActiveSlot] = useState<GearSlot>('weapon');
   const [selectedItem, setSelectedItem] = useState<GearItem>(profile.equipped.weapon);
   const [customColorIdx, setCustomColorIdx] = useState<number>(0);
+  const [warningMsg, setWarningMsg] = useState<string | null>(null);
 
   // Equip an item from inventory
   const handleEquip = (item: GearItem) => {
@@ -57,7 +58,8 @@ export const CustomizationView: React.FC<CustomizationViewProps> = ({
     const coreCost = item.level * 15;
 
     if (profile.gold < goldCost || profile.shadowCores < coreCost) {
-      alert(`Insufficient resources! Need ${goldCost} Gold and ${coreCost} Shadow Cores.`);
+      setWarningMsg(`Insufficient resources! Need ${goldCost} Gold and ${coreCost} Shadow Cores.`);
+      setTimeout(() => setWarningMsg(null), 3500);
       return;
     }
 
@@ -411,6 +413,12 @@ export const CustomizationView: React.FC<CustomizationViewProps> = ({
                       <span className="text-indigo-400">{selectedItem.level * 15} 🔮</span>
                     </div>
                   </div>
+
+                  {warningMsg && (
+                    <div className="mb-3 px-2.5 py-1.5 rounded-lg bg-red-950/80 border border-red-800 text-red-300 text-[11px] leading-tight">
+                      {warningMsg}
+                    </div>
+                  )}
                 </div>
 
                 <button

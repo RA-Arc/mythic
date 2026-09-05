@@ -295,6 +295,83 @@ export function generateGreatswordMoveSet() {
   return heavyMoves;
 }
 
+// Warhammer (Legion - crushing impact, high poise breaker, tectonic ground slam)
+export function generateWarhammerMoveSet() {
+  const baseMoves = generateKatanaMoveSet();
+  const hammerMoves = { ...baseMoves };
+  hammerMoves.heavyAttack[0].unbreakable = true;
+  hammerMoves.heavyAttack[1].damageMultiplier = 2.85;
+  hammerMoves.heavyAttack[1].hitBoxOffset = { x: 120, y: 15, r: 75 };
+  hammerMoves.heavyAttack[1].unbreakable = true;
+  hammerMoves.downAttack[1].damageMultiplier = 1.45;
+  hammerMoves.downAttack[1].hitBoxOffset = { x: 95, y: 35, r: 50 };
+  return hammerMoves;
+}
+
+// Nunchaku (Dynasty - ultra-rapid multi-hit flurries, combo surge)
+export function generateNunchakuMoveSet() {
+  const baseMoves = generateKatanaMoveSet();
+  const nunchakuMoves = { ...baseMoves };
+  nunchakuMoves.neutralCombo[0][1].damageMultiplier = 0.85;
+  nunchakuMoves.neutralCombo[1][1].damageMultiplier = 1.05;
+  nunchakuMoves.neutralCombo[2][1].damageMultiplier = 1.6;
+  nunchakuMoves.forwardAttack[1].hitBoxOffset = { x: 80, y: -10, r: 52 };
+  return nunchakuMoves;
+}
+
+// Kusarigama (Dynasty/Heralds - extended chain reach, barbed sickle sweep)
+export function generateKusarigamaMoveSet() {
+  const baseMoves = generateKatanaMoveSet();
+  const kusarigamaMoves = { ...baseMoves };
+  kusarigamaMoves.forwardAttack[1].hitBoxOffset = { x: 130, y: -15, r: 65 };
+  kusarigamaMoves.forwardAttack[1].damageMultiplier = 1.4;
+  kusarigamaMoves.downAttack[1].hitBoxOffset = { x: 115, y: 35, r: 55 };
+  kusarigamaMoves.downAttack[1].damageMultiplier = 1.25;
+  return kusarigamaMoves;
+}
+
+// Dual Daggers (Heralds - rapid twin strike, high haste)
+export function generateDualDaggersMoveSet() {
+  const baseMoves = generateKatanaMoveSet();
+  const daggersMoves = { ...baseMoves };
+  daggersMoves.neutralCombo[0][1].damageMultiplier = 0.95;
+  daggersMoves.neutralCombo[1][1].damageMultiplier = 1.15;
+  daggersMoves.neutralCombo[2][1].damageMultiplier = 1.85;
+  daggersMoves.forwardAttack[1].hitBoxOffset = { x: 75, y: -10, r: 45 };
+  return daggersMoves;
+}
+
+// Glaive (Polearm - wide sweeping arc, long reach)
+export function generateGlaiveMoveSet() {
+  const baseMoves = generateKatanaMoveSet();
+  const glaiveMoves = { ...baseMoves };
+  glaiveMoves.forwardAttack[1].hitBoxOffset = { x: 125, y: -10, r: 62 };
+  glaiveMoves.forwardAttack[1].damageMultiplier = 1.45;
+  glaiveMoves.upAttack[1].hitBoxOffset = { x: 105, y: -55, r: 58 };
+  return glaiveMoves;
+}
+
+// Dispatch moveset by weapon dynamic type
+export function getMoveSetByWeaponType(weaponType: WeaponType) {
+  switch (weaponType) {
+    case 'greatsword':
+      return generateGreatswordMoveSet();
+    case 'warhammer':
+      return generateWarhammerMoveSet();
+    case 'nunchaku':
+      return generateNunchakuMoveSet();
+    case 'kusarigama':
+      return generateKusarigamaMoveSet();
+    case 'dual_daggers':
+      return generateDualDaggersMoveSet();
+    case 'glaive':
+      return generateGlaiveMoveSet();
+    case 'katana':
+    default:
+      return generateKatanaMoveSet();
+  }
+}
+
 // Full weapon catalog with stats and dark fantasy lore
 export const WEAPON_CATALOG: GearItem[] = [
   {

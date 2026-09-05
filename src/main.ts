@@ -1,3 +1,7 @@
+import "./index.css";
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { MythicShadowApp } from "./MythicShadowApp";
 import { Application, Assets, Container, Graphics, Text, TextStyle, AnimatedSprite, Texture } from "pixi.js";
 import { Hero } from "./engine/Hero";
 import { GameState } from "./engine/GameState";
@@ -226,6 +230,17 @@ async function initGame() {
   hero.sprite.x = 260;
   hero.sprite.y = 420;
   tacticalCombatContainer.addChild(hero.sprite);
+
+  // Expose global references for hybrid react synchronization
+  (window as any).gameHero = hero;
+  (window as any).gameState = gameState;
+
+  // Mount Unified React App (Shadow Requiem + Character Builder + Manual Combat)
+  const reactRootEl = document.getElementById("react-shadow-requiem-root");
+  if (reactRootEl) {
+    const reactRoot = createRoot(reactRootEl);
+    reactRoot.render(React.createElement(MythicShadowApp));
+  }
 
   // Wire up transformation ascension particle effects (replaces any black circle)
   hero.onTransform = (form) => {
