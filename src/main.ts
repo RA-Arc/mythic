@@ -48,7 +48,10 @@ async function initGame() {
   function resizeGameViewport() {
     if (!canvasHost) return;
     const hostWidth = canvasHost.clientWidth || 1280;
-    const scale = hostWidth / 1280;
+    const hostHeight = canvasHost.clientHeight || 720;
+    const scaleX = hostWidth / 1280;
+    const scaleY = hostHeight / 720;
+    const scale = Math.min(scaleX, scaleY);
     if (Math.abs(scale - lastScale) > 0.0005) {
       lastScale = scale;
       wrapper.style.transform = `scale(${scale})`;
@@ -552,90 +555,116 @@ async function initGame() {
 
     // Hero Dead State
     if (hero.hp <= 0) {
-      if (combatEngine.heroRespawnTimer <= 0) {
-        pickNewWander();
+      if (hero.state !== "death") {
+        hero.setState("death");
       }
       return;
     }
 
-    // Target Management (perishing enemies fade away naturally before new targets spawn)
-    let target = combatEngine.activeEnemy;
-    if (!target && combatEngine.spawnDelayTimer <= 0) {
-      target = combatEngine.spawnNextTarget(logger);
-      if (target) {
-        tacticalCombatContainer.addChild(target.sprite);
+    // Horde Spawning & Target Management: as he fights, more creatures spawn and pile up!
+    combatEngine.hordeSpawnTimer += delta;
+    const livingEnemies = combatEngine.enemies.filter(e => e.hp > 0 && !e.isPerishing);
+    const spawnThreshold = livingEnemies.length < 3 ? 60 : (livingEnemies.length < 5 ? 90 : 130);
+    if ((combatEngine.hordeSpawnTimer >= spawnThreshold || livingEnemies.length === 0) && combatEngine.enemies.length < combatEngine.maxHordeSize && hero.hp > 0) {
+      combatEngine.hordeSpawnTimer = 0;
+      const newTarget = combatEngine.spawnNextTarget(logger);
+      if (newTarget) {
+        tacticalCombatContainer.addChild(newTarget.sprite);
       }
     }
 
-    // Combat Movement & Attack Execution
-    if (target && target.hp > 0 && !target.isPerishing && hero.hp > 0) {
-      const dx = target.sprite.x - hero.sprite.x;
-      const dy = target.sprite.y - hero.sprite.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+    // Find and sort all living creatures by proximity
+    livingEnemies.sort((a, b) => a.sprite.x - b.sprite.x);
+    const target = livingEnemies[0] || null;
 
-      if (dist > 110) {
-        const rad = Math.atan2(dy, dx);
-        hero.sprite.x += Math.cos(rad) * hero.speed;
-        hero.sprite.y += Math.sin(rad) * hero.speed;
-        vx = Math.cos(rad) * hero.speed;
-        vy = Math.sin(rad) * hero.speed;
-        if (hero.state !== "run" && hero.hurtTimer <= 0) hero.setState("run");
-        if (target.state !== "run" && !target.isBoss) target.setState("run");
+    // Creatures walk towards the hero and pile up around him in a menacing swarm
+    livingEnemies.forEach((enemy, idx) => {
+      // Pack closely: frontline starts at hero.sprite.x + 72, followed closely by subsequent mobs
+      const stopX = hero.sprite.x + 72 + (idx * 22);
+      const targetY = 435 + ((idx % 2 === 0 ? 1 : -1) * ((idx * 6) % 24));
+
+      if (enemy.sprite.x > stopX) {
+        enemy.sprite.x -= 1.65 * delta;
+        if (enemy.state !== "run" && !enemy.isBoss && enemy.state !== "hurt") {
+          enemy.setState("run");
+        }
       } else {
-        vx = 0;
-        vy = 0;
-        if (hero.hurtTimer <= 0 && hero.state !== "attack") hero.setState("attack");
-        if (hero.attackCooldown <= 0) {
-          const result = combatEngine.executeHeroAttack(logger);
-          const heroFacing = dx < 0 ? -1 : 1;
-          const enemyFacing = -heroFacing;
-          triggerHeroFlip(result?.isCrit ? "crit" : "attack", heroFacing);
-          triggerEnemyFlip("hurt", enemyFacing);
-          ui.updateUI();
+        if (enemy.state === "run" && !enemy.isBoss) {
+          enemy.setState("idle");
         }
       }
 
-      // Enemy counter-attack interval
-      if (target.attackCooldown > 0) target.attackCooldown -= delta;
-      if (dist < 140 && target.hp > 0 && !target.isPerishing && target.attackCooldown <= 0) {
-        target.attackCooldown = target.attackInterval;
-        combatEngine.executeEnemyAttack(logger);
-        const enemyFacing = hero.sprite.x < target.sprite.x ? -1 : 1;
-        triggerEnemyFlip("attack", enemyFacing);
-        triggerHeroFlip("hurt", -enemyFacing);
+      // Smoothly align Y depth
+      if (Math.abs(enemy.sprite.y - targetY) > 2) {
+        enemy.sprite.y += (targetY - enemy.sprite.y) * 0.06 * delta;
+      }
+
+      if (enemy.attackCooldown > 0) {
+        enemy.attackCooldown -= delta;
+      }
+    });
+
+    // Piled up creatures strike the hero and push him back!
+    combatEngine.executeCreatureAttacks(logger);
+
+    const MIDPOINT_X = 640; // Midpoint of the 1280px canvas
+    const MIN_HERO_X = 140; // Left boundary
+
+    // Apply pushback physics slide if hero has residual velocity from incoming monster strikes
+    if (hero.pushbackVelocity > 0) {
+      hero.sprite.x = Math.max(MIN_HERO_X, hero.sprite.x - hero.pushbackVelocity * 0.38 * delta);
+      hero.pushbackVelocity = Math.max(0, hero.pushbackVelocity - 3.2 * delta);
+    }
+
+    // Hero Movement & Attack:
+    // Stops to fight when front enemy is in melee range (<= 115px)
+    const inMeleeRange = target && (target.sprite.x - hero.sprite.x) <= 115;
+
+    if (inMeleeRange && hero.hp > 0) {
+      vx = 0;
+      vy = 0;
+      if (hero.hurtTimer <= 0 && hero.state !== "attack") {
+        hero.setState("attack");
+      }
+      if (hero.attackCooldown <= 0) {
+        const result = combatEngine.executeHeroAttack(logger);
+        triggerHeroFlip(result?.isCrit ? "crit" : "attack", 1);
+        triggerEnemyFlip("hurt", -1);
         ui.updateUI();
       }
     } else if (hero.hp > 0) {
-      // Walking through 3D parallax historical environment
-      hero.setState("run");
-      vx = 2.4;
-      vy = (455 - hero.sprite.y) * 0.08;
-      hero.sprite.x += vx;
-      hero.sprite.y += vy;
-      if (hero.sprite.x > 860) {
-        hero.sprite.x = 220;
-      }
-      if (target && target.state !== "idle" && !target.isBoss && !target.isPerishing) {
-        target.setState("idle");
+      // Advance towards the midpoint; NEVER pass the midpoint!
+      if (hero.sprite.x < MIDPOINT_X) {
+        hero.setState("run");
+        vx = 1.05;
+        vy = (435 - hero.sprite.y) * 0.05;
+        hero.sprite.x = Math.min(MIDPOINT_X, hero.sprite.x + vx * delta);
+        hero.sprite.y += vy * delta;
+      } else {
+        // At midpoint: hold the line! He stays at the midpoint while marching against oncoming hordes
+        hero.sprite.x = MIDPOINT_X;
+        hero.setState("run");
+        vy = (435 - hero.sprite.y) * 0.05;
+        hero.sprite.y += vy * delta;
       }
     }
 
-    // Clamp coordinates inside arena bounds
-    hero.sprite.x = Math.max(120, Math.min(1160, hero.sprite.x));
+    // Strict boundary enforcement: NEVER go past midpoint (640), but allow being pushed back to the left (140)
+    hero.sprite.x = Math.max(MIN_HERO_X, Math.min(MIDPOINT_X, hero.sprite.x));
     hero.sprite.y = Math.max(410, Math.min(480, hero.sprite.y));
 
     // Ground shadows for realistic stage grounding
     shadowGfx.fill({ color: 0x000000, alpha: 0.35 }).ellipse(hero.sprite.x, hero.sprite.y + 36, 26, 8);
-    if (target && target.hp > 0 && !target.isPerishing) {
-      const sWidth = target.isBoss ? 56 : 24;
-      const sHeight = target.isBoss ? 16 : 8;
-      const sOffsetY = target.isBoss ? 75 : 34;
-      shadowGfx.fill({ color: 0x000000, alpha: 0.4 * target.sprite.alpha }).ellipse(target.sprite.x, target.sprite.y + sOffsetY, sWidth, sHeight);
-    }
+    livingEnemies.forEach(enemy => {
+      const sWidth = enemy.isBoss ? 56 : 24;
+      const sHeight = enemy.isBoss ? 16 : 8;
+      const sOffsetY = enemy.isBoss ? 75 : 34;
+      shadowGfx.fill({ color: 0x000000, alpha: 0.4 * enemy.sprite.alpha }).ellipse(enemy.sprite.x, enemy.sprite.y + sOffsetY, sWidth, sHeight);
+    });
 
     // Calculate Base Scales & Facing Direction
     const baseHeroScale = hero.activeForm === "arc_angel" ? 1.2 : hero.activeForm === "werewolf" ? 1.15 : hero.activeForm === "mythic_drake" ? 1.3 : 1.0;
-    const heroFacing = (target && target.hp > 0) ? (target.sprite.x < hero.sprite.x ? -1 : 1) : (vx < 0 ? -1 : 1);
+    const heroFacing = 1;
 
     // Apply Hero Flip Animation for Combat Interactions
     if (heroCombatFlip.active) {
@@ -673,41 +702,41 @@ async function initGame() {
       hero.sprite.scale.y = baseHeroScale;
     }
 
-    // Apply Enemy Flip Animation & Facing
-    if (target && target.hp > 0) {
-      const baseEnemyScale = target.baseScale;
-      const enemyFacing = hero.sprite.x < target.sprite.x ? -1 : 1;
+    // Apply Enemy Flip Animation & Facing across the swarm
+    livingEnemies.forEach(enemy => {
+      const baseEnemyScale = enemy.baseScale;
+      const enemyFacing = hero.sprite.x < enemy.sprite.x ? -1 : 1;
 
-      if (enemyCombatFlip.active) {
+      if (enemyCombatFlip.active && enemy === target) {
         enemyCombatFlip.timer -= delta;
         const progress = 1 - Math.max(0, enemyCombatFlip.timer) / enemyCombatFlip.duration;
         if (enemyCombatFlip.type === "attack") {
           // Forward attack lunge tilt
-          target.sprite.rotation = Math.sin(progress * Math.PI) * 0.3 * enemyCombatFlip.facing;
-          target.sprite.scale.x = enemyCombatFlip.facing * baseEnemyScale * (1 + 0.25 * Math.sin(progress * Math.PI));
-          target.sprite.scale.y = baseEnemyScale * (1.1 - 0.1 * Math.sin(progress * Math.PI));
+          enemy.sprite.rotation = Math.sin(progress * Math.PI) * 0.3 * enemyCombatFlip.facing;
+          enemy.sprite.scale.x = enemyCombatFlip.facing * baseEnemyScale * (1 + 0.25 * Math.sin(progress * Math.PI));
+          enemy.sprite.scale.y = baseEnemyScale * (1.1 - 0.1 * Math.sin(progress * Math.PI));
         } else if (enemyCombatFlip.type === "hurt") {
           // Hit recoil flip: tilts backward and inverts/squishes scale horizontally
-          target.sprite.rotation = -enemyCombatFlip.facing * 0.32 * Math.sin(progress * Math.PI);
+          enemy.sprite.rotation = -enemyCombatFlip.facing * 0.32 * Math.sin(progress * Math.PI);
           const hitFlipFactor = Math.cos(progress * Math.PI);
-          target.sprite.scale.x = enemyCombatFlip.facing * baseEnemyScale * (hitFlipFactor > 0 ? 0.8 : -0.7);
-          target.sprite.scale.y = baseEnemyScale * (1.2 - 0.2 * Math.sin(progress * Math.PI));
+          enemy.sprite.scale.x = enemyCombatFlip.facing * baseEnemyScale * (hitFlipFactor > 0 ? 0.8 : -0.7);
+          enemy.sprite.scale.y = baseEnemyScale * (1.2 - 0.2 * Math.sin(progress * Math.PI));
         }
 
         if (enemyCombatFlip.timer <= 0) {
           enemyCombatFlip.active = false;
-          target.sprite.rotation = 0;
-          target.sprite.scale.set(baseEnemyScale);
-          target.sprite.scale.x = enemyFacing * baseEnemyScale;
+          enemy.sprite.rotation = 0;
+          enemy.sprite.scale.set(baseEnemyScale);
+          enemy.sprite.scale.x = enemyFacing * baseEnemyScale;
         }
       } else {
-        target.sprite.rotation = 0;
-        target.sprite.scale.x = enemyFacing * baseEnemyScale;
-        target.sprite.scale.y = baseEnemyScale;
+        enemy.sprite.rotation = 0;
+        enemy.sprite.scale.x = enemyFacing * baseEnemyScale;
+        enemy.sprite.scale.y = baseEnemyScale;
       }
 
-      target.sprite.zIndex = target.sprite.y;
-    }
+      enemy.sprite.zIndex = enemy.sprite.y;
+    });
 
     hero.sprite.zIndex = hero.sprite.y;
 
@@ -918,16 +947,16 @@ async function initGame() {
       shadowGfx.fill({ color: 0x000000, alpha: ninja.isFlying ? 0.22 : 0.35 }).ellipse(ninja.sprite.x, hero.sprite.y + ninja.offsetY + 16, shadowRadiusX, 4);
     }
 
-    if (target && target.hp > 0 && !target.isPerishing) {
-      const barW = target.isBoss ? 160 : 75;
-      const barH = target.isBoss ? 10 : 7;
-      const barY = target.sprite.y + (target.isBoss ? 90 : 44);
-      drawBar(target.sprite.x, barY, target.hp, target.maxHp, barW, barH, target.isBoss ? 0xda3633 : 0xff7b72);
-    }
+    livingEnemies.forEach(enemy => {
+      const barW = enemy.isBoss ? 160 : 64;
+      const barH = enemy.isBoss ? 9 : 6;
+      const barY = enemy.sprite.y + (enemy.isBoss ? 90 : 42);
+      drawBar(enemy.sprite.x, barY, enemy.hp, enemy.maxHp, barW, barH, enemy.isBoss ? 0xda3633 : 0xff7b72);
+    });
 
     // Update 7 independent parallax layers and real-time ground reflection
     const isWalking = hero.state === "run" || Math.abs(vx) > 0.1;
-    const walkSpeed = Math.sqrt(vx * vx + vy * vy) || 2.4;
+    const walkSpeed = isWalking ? 0.85 : 0.2;
     parallaxEngine.update(delta, isWalking, walkSpeed, heroFacing, hero, combatEngine.activeEnemy, activeMiniNinjas);
 
     // Sync HTML Sidebars and Header

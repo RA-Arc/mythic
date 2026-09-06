@@ -45,16 +45,22 @@
       --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
       background-color: var(--bg-canvas);
       color: var(--text-primary);
       font-family: var(--font-family);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
-      overflow-y: auto;
+      overflow: hidden;
       line-height: 1.5;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
     }
 
     /* Main App Layout */
@@ -62,9 +68,11 @@
       display: flex;
       flex-direction: column;
       width: 100%;
-      min-height: 100vh;
+      height: 100%;
+      height: 100dvh;
       max-width: 1920px;
       margin: 0 auto;
+      overflow: hidden;
     }
 
     /* Top Global Header */
@@ -132,11 +140,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      gap: 10px;
-      padding: 10px 16px 20px 16px;
+      justify-content: center;
       flex: 1;
       width: 100%;
+      height: 100%;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
     }
 
     /* Screen Dock Navigation Toolbar */
@@ -199,26 +210,28 @@
     #center-viewport-container {
       display: flex;
       flex-direction: column;
-      gap: 12px;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       width: 100%;
-      max-width: 1360px;
+      height: 100%;
+      overflow: hidden;
     }
 
     #canvas-wrapper {
       position: relative;
       width: 100%;
-      max-width: 1360px;
+      max-width: min(1360px, calc(100dvh * 16 / 9));
+      max-height: 100dvh;
       aspect-ratio: 16 / 9;
       background: var(--bg-canvas);
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
       overflow: hidden;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
       display: flex;
       justify-content: center;
       align-items: center;
+      touch-action: none;
     }
 
     #canvas-wrapper canvas {

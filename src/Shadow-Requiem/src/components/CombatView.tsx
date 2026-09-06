@@ -21,7 +21,12 @@ import {
   Check,
   Sword,
   Users,
-  Gamepad2
+  Gamepad2,
+  Shield,
+  Maximize2,
+  Minimize2,
+  Swords,
+  Flame
 } from 'lucide-react';
 
 interface CombatViewProps {
@@ -57,7 +62,33 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [matchOver, setMatchOver] = useState<'victory' | 'defeat' | null>(null);
   const [roundBanner, setRoundBanner] = useState<string>('ROUND 1');
-  const [showTouchControls, setShowTouchControls] = useState<boolean>(false);
+  const [showTouchControls, setShowTouchControls] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return true; // Enabled by default so all touch, tablet, and mobile fighters have immediate access to attack controls
+  });
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
+    return typeof document !== 'undefined' && !!document.fullscreenElement;
+  });
+
+  useEffect(() => {
+    const handleFs = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFs);
+    return () => document.removeEventListener('fullscreenchange', handleFs);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
 
   // UI status mirrors for HUD
   const [p1Hp, setP1Hp] = useState(playerConfig.stats.health);
@@ -574,36 +605,48 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
         </div>
 
-        {/* Minimalist Action Controls Row: Exit, Touch Toggle, Sound & Pause */}
+        {/* Minimalist Action Controls Row: Exit, Touch Toggle, Fullscreen, Sound & Pause */}
         <div className="w-full max-w-5xl flex justify-between items-center mt-1.5 pointer-events-auto">
           <button 
             id="combat-exit-btn"
             onClick={onExit}
-            className="px-2 py-1 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-neutral-800 backdrop-blur transition-all flex items-center gap-1 text-[11px] font-cinzel font-bold shadow-sm"
+            className="px-3 py-1.5 rounded-lg bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700 backdrop-blur transition-all flex items-center gap-1.5 text-xs font-cinzel font-bold shadow-sm active:scale-95"
             title="Exit Combat"
           >
             <span>←</span>
-            <span>Exit</span>
+            <span>Exit Duel</span>
           </button>
           
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <button
               id="toggle-touch-controls-btn"
               onClick={() => setShowTouchControls(!showTouchControls)}
-              className={`p-1.5 rounded-lg border backdrop-blur transition-all text-xs flex items-center gap-1 ${
+              className={`px-2.5 py-1.5 rounded-lg border backdrop-blur transition-all text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 ${
                 showTouchControls 
-                  ? 'bg-amber-500/20 border-amber-500/60 text-amber-300' 
-                  : 'bg-neutral-900/80 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                  ? 'bg-amber-500/25 border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.35)]' 
+                  : 'bg-neutral-900/90 border-neutral-700 text-neutral-400 hover:text-neutral-200'
               }`}
               title={showTouchControls ? 'Hide Virtual Touch Controls' : 'Show Virtual Touch Controls'}
             >
-              <Gamepad2 className="w-3.5 h-3.5" />
+              <Gamepad2 className="w-4 h-4 text-amber-400" />
+              <span>Controls: {showTouchControls ? 'ON' : 'OFF'}</span>
             </button>
+
+            <button
+              id="combat-fullscreen-btn"
+              onClick={toggleFullscreen}
+              className="px-2.5 py-1.5 rounded-lg bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700 backdrop-blur transition-all text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95"
+              title="Toggle Fullscreen View"
+            >
+              {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 text-cyan-400" /> : <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />}
+              <span className="hidden sm:inline">{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
+            </button>
+
             <SoundButton id="combat-sound-btn" size="sm" showLabel={false} />
             <button 
               id="pause-toggle-btn"
               onClick={() => setIsPaused(!isPaused)}
-              className="p-1.5 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 backdrop-blur transition-all flex items-center shadow-sm"
+              className="p-1.5 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 backdrop-blur transition-all flex items-center shadow-sm active:scale-95"
               title={isPaused ? 'Resume Match' : 'Pause Match'}
             >
               {isPaused ? <Play className="w-3.5 h-3.5 text-amber-400" /> : <Pause className="w-3.5 h-3.5" />}
@@ -637,117 +680,188 @@ export const CombatView: React.FC<CombatViewProps> = ({
         className="w-full h-full flex-1 touch-none"
       />
 
-      {/* Optional Virtual Touch Controls (Hidden by default for super clean action) */}
+      {/* Tablet & Mobile Touch Controls (Arcade Action Suite) */}
       {showTouchControls && (
-        <div id="combat-controls-overlay" className="absolute bottom-4 left-0 right-0 z-20 px-6 flex justify-between items-end pointer-events-none animate-fadeIn">
-          
-          {/* D-Pad Virtual Movement */}
-          <div id="virtual-dpad" className="flex flex-col items-center gap-1.5 pointer-events-auto bg-black/40 p-2 rounded-2xl border border-neutral-800/60 backdrop-blur-sm">
+        <div 
+          id="combat-controls-overlay" 
+          className="absolute bottom-2 sm:bottom-4 left-0 right-0 z-30 px-3 sm:px-6 flex justify-between items-end pointer-events-none select-none pb-[env(safe-area-inset-bottom,4px)] animate-fadeIn"
+        >
+          {/* Left: 4-Way Movement D-Pad */}
+          <div 
+            id="virtual-dpad" 
+            className="flex flex-col items-center gap-1 sm:gap-1.5 pointer-events-auto bg-black/60 p-2 sm:p-3 rounded-2xl border border-neutral-700/80 backdrop-blur-md shadow-2xl touch-none"
+          >
             <button 
               id="btn-move-jump"
-              onPointerDown={() => {
+              onPointerDown={(e) => {
+                e.preventDefault();
                 const f1 = f1Ref.current;
                 if (f1.y >= GROUND_Y) {
                   f1.vy = -14;
                   f1.action = 'jump';
                 }
               }}
-              className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-200"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-neutral-800/90 active:bg-amber-500/40 border border-neutral-600 active:border-amber-400 flex flex-col items-center justify-center font-bold text-neutral-200 shadow-md active:scale-95 transition-transform touch-none"
+              title="Jump [W / Up]"
             >
-              UP
+              <span className="text-sm sm:text-base leading-none">▲</span>
+              <span className="text-[8px] sm:text-[9px] uppercase font-bold text-amber-300 mt-0.5">JUMP</span>
             </button>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 sm:gap-2">
               <button 
                 id="btn-move-left"
-                onPointerDown={() => {
+                onPointerDown={(e) => {
+                  e.preventDefault();
                   f1Ref.current.action = f1Ref.current.direction === 1 ? 'walk_bwd' : 'walk_fwd';
                 }}
-                onPointerUp={() => { f1Ref.current.action = 'idle'; }}
-                className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-200"
+                onPointerUp={(e) => {
+                  e.preventDefault();
+                  f1Ref.current.action = 'idle';
+                }}
+                onPointerLeave={() => { f1Ref.current.action = 'idle'; }}
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-neutral-800/90 active:bg-amber-500/40 border border-neutral-600 active:border-amber-400 flex flex-col items-center justify-center font-bold text-neutral-200 shadow-md active:scale-95 transition-transform touch-none"
+                title="Walk Back [A / Left]"
               >
-                LEFT
+                <span className="text-sm sm:text-base leading-none">◀</span>
+                <span className="text-[8px] sm:text-[9px] uppercase font-bold text-neutral-300 mt-0.5">BACK</span>
               </button>
               <button 
                 id="btn-move-crouch"
-                onPointerDown={() => { f1Ref.current.action = 'crouch'; }}
-                onPointerUp={() => { f1Ref.current.action = 'idle'; }}
-                className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-200"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  f1Ref.current.action = 'crouch';
+                }}
+                onPointerUp={(e) => {
+                  e.preventDefault();
+                  f1Ref.current.action = 'idle';
+                }}
+                onPointerLeave={() => { f1Ref.current.action = 'idle'; }}
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-neutral-800/90 active:bg-amber-500/40 border border-neutral-600 active:border-amber-400 flex flex-col items-center justify-center font-bold text-neutral-200 shadow-md active:scale-95 transition-transform touch-none"
+                title="Crouch / Duck [S / Down]"
               >
-                DOWN
+                <span className="text-sm sm:text-base leading-none">▼</span>
+                <span className="text-[8px] sm:text-[9px] uppercase font-bold text-neutral-300 mt-0.5">DUCK</span>
               </button>
               <button 
                 id="btn-move-right"
-                onPointerDown={() => {
+                onPointerDown={(e) => {
+                  e.preventDefault();
                   f1Ref.current.action = f1Ref.current.direction === 1 ? 'walk_fwd' : 'walk_bwd';
                 }}
-                onPointerUp={() => { f1Ref.current.action = 'idle'; }}
-                className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-200"
+                onPointerUp={(e) => {
+                  e.preventDefault();
+                  f1Ref.current.action = 'idle';
+                }}
+                onPointerLeave={() => { f1Ref.current.action = 'idle'; }}
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-neutral-800/90 active:bg-amber-500/40 border border-neutral-600 active:border-amber-400 flex flex-col items-center justify-center font-bold text-neutral-200 shadow-md active:scale-95 transition-transform touch-none"
+                title="Advance Forward [D / Right]"
               >
-                RIGHT
+                <span className="text-sm sm:text-base leading-none">▶</span>
+                <span className="text-[8px] sm:text-[9px] uppercase font-bold text-neutral-300 mt-0.5">FWD</span>
               </button>
             </div>
           </div>
 
-          {/* Action Strike Buttons */}
-          <div id="virtual-action-buttons" className="flex items-center gap-2 pointer-events-auto bg-black/40 p-2 rounded-2xl border border-neutral-800/60 backdrop-blur-sm">
-            {/* Shadow Form / Ability Button */}
+          {/* Right: Arcade Strike & Combat Action Buttons */}
+          <div 
+            id="virtual-action-buttons" 
+            className="pointer-events-auto bg-black/60 border border-neutral-700/80 p-2 sm:p-3 rounded-2xl backdrop-blur-md shadow-2xl flex flex-wrap max-w-[290px] sm:max-w-[360px] items-center justify-end gap-1.5 sm:gap-2 touch-none"
+          >
+            {/* Guard / Block */}
             <button 
-              id="btn-shadow-ability"
-              onClick={() => triggerShadowFormOrAbility(f1Ref.current)}
-              className={`w-12 h-12 rounded-full flex flex-col items-center justify-center border transition-all ${
-                p1IsShadowForm 
-                  ? 'bg-purple-600 border-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.8)] animate-pulse' 
-                  : p1Shadow >= 100 
-                    ? 'bg-indigo-600/90 border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-bounce' 
-                    : 'bg-neutral-900/70 border-neutral-700 opacity-60'
-              }`}
-              title="Shadow Form / Shadow Ability [Shift / Space]"
+              id="btn-action-guard"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                f1Ref.current.action = 'crouch';
+              }}
+              onPointerUp={(e) => {
+                e.preventDefault();
+                f1Ref.current.action = 'idle';
+              }}
+              onPointerLeave={() => { f1Ref.current.action = 'idle'; }}
+              className="w-12 h-12 sm:w-13 sm:h-13 rounded-xl bg-slate-900/90 active:bg-blue-600/40 border border-slate-600 active:border-blue-400 flex flex-col items-center justify-center text-white shadow-md active:scale-95 transition-transform touch-none"
+              title="Block / Guard [S]"
             >
-              <Zap className="w-4 h-4 text-white" />
-              <span className="text-[8px] font-bold text-purple-200">SHADOW</span>
+              <Shield className="w-4 h-4 text-blue-400" />
+              <span className="text-[8px] sm:text-[9px] font-bold text-blue-300 uppercase">BLOCK</span>
             </button>
 
             {/* Low Sweep Attack */}
             <button 
               id="btn-attack-down"
-              onClick={() => triggerAction(f1Ref.current, 'attack_down', 0.5)}
-              className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500 border border-neutral-700 flex flex-col items-center justify-center text-[9px] font-bold text-neutral-300"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                triggerAction(f1Ref.current, 'attack_down', 0.5);
+              }}
+              className="w-12 h-12 sm:w-13 sm:h-13 rounded-xl bg-neutral-900/90 active:bg-lime-600/40 border border-neutral-700 active:border-lime-400 flex flex-col items-center justify-center text-white shadow-md active:scale-95 transition-transform touch-none"
               title="Low Sweep [C]"
             >
-              LOW
+              <span className="text-xs font-black text-lime-400">SWEEP</span>
+              <span className="text-[8px] text-neutral-400 font-mono">[C]</span>
             </button>
 
-            {/* Forward Lunge */}
+            {/* Forward Lunge / Thrust */}
             <button 
               id="btn-attack-fwd"
-              onClick={() => triggerAction(f1Ref.current, 'attack_forward', 0.55)}
-              className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500 border border-neutral-700 flex flex-col items-center justify-center text-[9px] font-bold text-neutral-300"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                triggerAction(f1Ref.current, 'attack_forward', 0.55);
+              }}
+              className="w-12 h-12 sm:w-13 sm:h-13 rounded-xl bg-neutral-900/90 active:bg-cyan-600/40 border border-neutral-700 active:border-cyan-400 flex flex-col items-center justify-center text-white shadow-md active:scale-95 transition-transform touch-none"
               title="Lunge Strike [G]"
             >
-              THRUST
+              <span className="text-xs font-black text-cyan-400">LUNGE</span>
+              <span className="text-[8px] text-neutral-400 font-mono">[G]</span>
             </button>
 
             {/* Heavy Charged Breaker */}
             <button 
               id="btn-attack-heavy"
-              onClick={() => triggerAction(f1Ref.current, 'attack_heavy', 0.8)}
-              className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border border-amber-400 shadow-md shadow-amber-950 flex flex-col items-center justify-center text-[10px] font-black text-white"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                triggerAction(f1Ref.current, 'attack_heavy', 0.8);
+              }}
+              className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 active:from-amber-400 active:to-amber-600 border-2 border-amber-400 shadow-xl shadow-amber-950/60 flex flex-col items-center justify-center text-white active:scale-95 transition-transform touch-none"
               title="Heavy Breaker [H]"
             >
-              HEAVY
+              <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-amber-200" />
+              <span className="text-[10px] sm:text-xs font-black uppercase text-amber-100 tracking-wider">HEAVY</span>
             </button>
 
-            {/* Light Combo Strike */}
+            {/* Light Combo Strike - Primary Action Button */}
             <button 
               id="btn-attack-light"
-              onClick={() => triggerAction(f1Ref.current, 'attack_neutral_1', 0.45)}
-              className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-800 active:from-indigo-400 active:to-indigo-600 border-2 border-indigo-400 shadow-lg shadow-indigo-950 flex flex-col items-center justify-center text-xs font-black text-white"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                triggerAction(f1Ref.current, 'attack_neutral_1', 0.45);
+              }}
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 active:from-emerald-400 active:to-teal-500 border-2 border-emerald-300 shadow-xl shadow-emerald-950/70 flex flex-col items-center justify-center text-white active:scale-95 transition-transform touch-none"
               title="Slash Combo [F]"
             >
-              STRIKE
+              <Swords className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-100" />
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">STRIKE</span>
+            </button>
+
+            {/* Shadow Form / Ability Button */}
+            <button 
+              id="btn-shadow-ability"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                triggerShadowFormOrAbility(f1Ref.current);
+              }}
+              className={`w-13 h-13 sm:w-15 sm:h-15 rounded-2xl flex flex-col items-center justify-center border-2 transition-all active:scale-95 touch-none ${
+                p1IsShadowForm 
+                  ? 'bg-purple-600 border-purple-300 shadow-[0_0_24px_rgba(168,85,247,0.9)] animate-pulse' 
+                  : p1Shadow >= 100 
+                    ? 'bg-indigo-600 border-indigo-300 shadow-[0_0_20px_rgba(99,102,241,0.7)] animate-bounce' 
+                    : 'bg-neutral-900/80 border-neutral-700 opacity-60'
+              }`}
+              title="Shadow Form / Ability [Shift / Space]"
+            >
+              <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-purple-200" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-purple-200">SHADOW</span>
             </button>
           </div>
-
         </div>
       )}
 

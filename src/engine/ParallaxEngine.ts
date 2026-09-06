@@ -51,7 +51,7 @@ export class ParallaxEngine {
   private enemyReflection: Sprite;
   private ninjaReflections: Sprite[] = [];
 
-  public groundY: number = 508;
+  public groundY: number = 472;
 
   constructor() {
     this.rootContainer = new Container();
@@ -250,11 +250,11 @@ export class ParallaxEngine {
       this.heroReflection.visible = true;
       this.heroReflection.texture = hero.sprite.texture;
       this.heroReflection.x = hero.sprite.x;
-      // Invert across ground waterline
-      this.heroReflection.y = gy + (gy - hero.sprite.y) + 6;
+      // Invert across ground waterline (gy = 472, hero feet at ~471)
+      this.heroReflection.y = gy + (gy - hero.sprite.y);
       this.heroReflection.scale.x = hero.sprite.scale.x;
       this.heroReflection.scale.y = -Math.abs(hero.sprite.scale.y) * 0.85;
-      this.heroReflection.alpha = hero.isTransformed ? 0.45 : 0.32;
+      this.heroReflection.alpha = hero.isTransformed ? 0.55 : 0.42;
       this.heroReflection.tint = hero.activeForm === "arc_angel" ? 0xffea88 : 0x88c0ff;
     } else {
       this.heroReflection.visible = false;
@@ -265,10 +265,10 @@ export class ParallaxEngine {
       this.enemyReflection.visible = true;
       this.enemyReflection.texture = enemy.sprite.texture;
       this.enemyReflection.x = enemy.sprite.x;
-      this.enemyReflection.y = gy + (gy - enemy.sprite.y) + 6;
+      this.enemyReflection.y = gy + (gy - enemy.sprite.y);
       this.enemyReflection.scale.x = enemy.sprite.scale.x;
       this.enemyReflection.scale.y = -Math.abs(enemy.sprite.scale.y) * 0.85;
-      this.enemyReflection.alpha = 0.32;
+      this.enemyReflection.alpha = 0.42;
     } else {
       this.enemyReflection.visible = false;
     }
@@ -289,11 +289,11 @@ export class ParallaxEngine {
         rSpr.visible = true;
         rSpr.texture = u.sprite.texture;
         rSpr.x = u.sprite.x;
-        rSpr.y = gy + (gy - u.sprite.y) + 4;
+        rSpr.y = gy + (gy - u.sprite.y);
         rSpr.scale.x = u.sprite.scale.x;
         rSpr.scale.y = -Math.abs(u.sprite.scale.y) * 0.85;
         rSpr.tint = u.color;
-        rSpr.alpha = u.sprite.alpha * 0.28;
+        rSpr.alpha = u.sprite.alpha * 0.38;
       } else {
         rSpr.visible = false;
       }
@@ -306,16 +306,16 @@ export class ParallaxEngine {
     const time = this.ambientTimer * 3;
 
     // Specular waterline boundary
-    this.waterRippleGfx.stroke({ width: 1.5, color: 0xaaccff, alpha: 0.45 });
+    this.waterRippleGfx.stroke({ width: 2, color: 0xaaccff, alpha: 0.6 });
     this.waterRippleGfx.moveTo(0, gy).lineTo(1280, gy);
 
     // Subtle drifting caustic wave reflections
     for (let i = 0; i < 5; i++) {
-      const waveY = gy + 14 + i * 26;
+      const waveY = gy + 10 + i * 24;
       const speedOffset = time * (1.2 + i * 0.4);
-      const alpha = 0.15 - i * 0.025;
+      const alpha = 0.2 - i * 0.03;
 
-      this.waterRippleGfx.stroke({ width: 1, color: 0x99ddff, alpha });
+      this.waterRippleGfx.stroke({ width: 1.2, color: 0x99ddff, alpha });
       this.waterRippleGfx.moveTo(0, waveY);
 
       for (let x = 0; x <= 1280; x += 120) {

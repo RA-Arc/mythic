@@ -1,4 +1,4 @@
-import { AnimatedSprite, Texture } from "pixi.js";
+import { AnimatedSprite, Texture, Sprite, Container } from "pixi.js";
 import { RPGItem, EquipSlot, CosmicForce, EraId, TransformationType, CompanionTroop, RogueRelic } from "./types";
 import { INITIAL_COMPANION_TROOPS } from "./data/troops";
 import { INITIAL_ROGUE_RELICS } from "./data/relics";
@@ -19,6 +19,7 @@ export type HeroState =
 
 export class Hero {
   sprite: AnimatedSprite;
+  weaponSprite: PIXI.Sprite;
   state: HeroState = "idle";
 
   // Base Ninja Animations
@@ -47,15 +48,16 @@ export class Hero {
 
   level: number = 1;
   xp: number = 0;
-  maxXp: number = 100;
-  hp: number = 150;
-  maxHp: number = 150;
-  baseDmg: number = 15;
-  speed: number = 2.6;
+  maxXp: number = 250;
+  hp: number = 220;
+  maxHp: number = 220;
+  baseDmg: number = 24;
+  speed: number = 0.85;
 
   attackCooldown: number = 0;
   hurtTimer: number = 0;
   castCooldown: number = 0;
+  pushbackVelocity: number = 0;
 
   // Chi Force & Transformation State
   chi: number = 0;
@@ -180,7 +182,17 @@ export class Hero {
     this.unlockedPerks = profile.unlockedPerks || [];
 
     this.updateChampionVisuals();
+    this.syncVisuals();
     this.onCharacterChanged?.(this);
+  }
+
+  public syncVisuals() {
+    // Update weapon texture
+    if (this.equippedShadowWeapon && this.equippedShadowWeapon.texturePath) {
+      this.weaponSprite.texture = Texture.from(this.equippedShadowWeapon.texturePath);
+    } else {
+      this.weaponSprite.texture = Texture.EMPTY;
+    }
   }
 
   constructor() {
@@ -191,6 +203,10 @@ export class Hero {
     this.sprite.animationSpeed = 0.15;
     this.sprite.anchor.set(0.5);
     this.sprite.play();
+
+    this.weaponSprite = new Sprite(Texture.EMPTY);
+    this.weaponSprite.anchor.set(0.5);
+    this.sprite.addChild(this.weaponSprite);
   }
 
   private loadBaseAnimations() {
@@ -336,16 +352,25 @@ export class Hero {
     while (this.xp >= this.maxXp) {
       this.xp -= this.maxXp;
       this.level++;
-      this.maxXp = Math.floor(this.maxXp * 1.55 + 20);
-      this.maxHp = Math.floor(this.maxHp * 1.22 + 25);
+      this.maxXp = Math.floor(this.maxXp * 1.55 + 50);
+      this.maxHp = Math.floor(this.maxHp + 28);
       this.hp = this.getEffectiveMaxHp();
-      this.baseDmg += 6;
-      this.speed = Math.min(4.5, this.speed + 0.04);
-      this.chiSkillPoints += 1;
-      this.soulDiamonds += 1;
+      this.baseDmg += 3;
+      this.speed = Math.min(1.05, this.speed + 0.005);
+      this.chiSkillPoints += 2;
+      this.soulDiamonds += 2;
       leveled = true;
     }
     return leveled;
+  }
+
+  applyPushback(amount: number) {
+    if (this.hp <= 0) return;
+    this.pushbackVelocity = Math.min(50, this.pushbackVelocity + amount);
+    // Instant displacement plus smooth slide
+    this.sprite.x = Math.max(140, this.sprite.x - amount * 0.55);
+    this.hurtTimer = 14;
+    this.setState(this.activeForm === "arc_angel" ? "defend" : "hurt");
   }
 
   takeDamage(amount: number, incomingDefenseBonus: number = 0) {
@@ -469,8 +494,9 @@ export class Hero {
 
     const relicDef = this.getRelicBonus("defensePercent") / 100;
     const formDefBonus = this.activeForm === "arc_angel" ? 100 : this.activeForm === "werewolf" ? 40 : 80;
+    const naturalDef = (this.level - 1) * 3;
 
-    return Math.floor((bonus + shadowDef + traitBonus + formDefBonus) * (1 + relicDef) * memoryMultiplier);
+    return Math.floor((bonus + shadowDef + traitBonus + formDefBonus + naturalDef) * (1 + relicDef) * memoryMultiplier);
   }
 
   getCritRate(traitBonus: number = 0, memoryBonus: number = 0): number {

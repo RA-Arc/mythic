@@ -16,6 +16,7 @@ export class MythicEnemy {
   maxHp: number;
   baseDmg: number;
   defense: number = 0;
+  pushback: number = 16;
   attackInterval: number = 60;
   attackCooldown: number = 0;
 
@@ -51,7 +52,8 @@ export class MythicEnemy {
     affinity: MythicAffinity = "Neutral",
     tint: number = 0xffffff,
     defense: number = 0,
-    spriteName: string = "sprGoblin1"
+    spriteName: string = "sprGoblin1",
+    pushback: number = 16
   ) {
     this.name = name;
     this.era = era;
@@ -62,6 +64,7 @@ export class MythicEnemy {
     this.affinity = affinity;
     this.defense = defense;
     this.spriteName = spriteName;
+    this.pushback = pushback;
 
     // Detect flying or floating characteristics
     if (
@@ -241,8 +244,9 @@ export class MythicEnemy {
     const eraTierBonus = 1 + (era.order - 1) * 0.35; // Each historical era is 35% more challenging
 
     if (isBoss) {
-      const hp = Math.floor(era.bossHp * (1 + (heroLvl * 0.08)) * eraTierBonus);
-      const dmg = Math.floor(era.bossDamage * (1 + (heroLvl * 0.05)) * eraTierBonus);
+      const hp = Math.floor(era.bossHp * 1.8 * (1 + (heroLvl * 0.12)) * eraTierBonus);
+      const dmg = Math.floor(era.bossDamage * 1.35 * (1 + (heroLvl * 0.08)) * eraTierBonus);
+      const bossPushback = Math.min(80, 55 + era.order * 5); // Bosses push back 55 - 75+ px!
       return new MythicEnemy(
         era.bossName,
         eraId,
@@ -251,14 +255,29 @@ export class MythicEnemy {
         dmg,
         era.bossAffinity,
         0xffffff,
-        Math.floor(dmg * 0.4),
-        era.bossSpriteName || "sprDragon"
+        Math.floor(dmg * 0.45),
+        era.bossSpriteName || "sprDragon",
+        bossPushback
       );
     }
 
     const enemyProto = era.enemies[Math.floor(Math.random() * era.enemies.length)];
-    const baseHp = 50 * enemyProto.hpMultiplier * (1 + (heroLvl * 0.22)) * eraTierBonus;
-    const baseDmg = 8 * enemyProto.dmgMultiplier * (1 + (heroLvl * 0.16)) * eraTierBonus;
+    // Sturdy, challenging health scaling so mobs build up into formidable swarms
+    const baseHp = (170 + heroLvl * 32) * enemyProto.hpMultiplier * eraTierBonus;
+    const baseDmg = (14 + heroLvl * 3.2) * enemyProto.dmgMultiplier * eraTierBonus;
+
+    // Distinct pushback per monster archetype
+    let mobPushback = 14;
+    const sName = enemyProto.spriteName || "";
+    if (sName.includes("Minotaur") || sName.includes("Dragon")) {
+      mobPushback = 32; // Heavy brute
+    } else if (sName.includes("Skeleton") || sName.includes("Bogslium") || sName.includes("Lizard")) {
+      mobPushback = 20; // Medium warrior
+    } else if (sName.includes("Batilisk") || sName.includes("Goblin") || sName.includes("Ghost")) {
+      mobPushback = 14; // Light skirmisher
+    } else {
+      mobPushback = 16;
+    }
 
     return new MythicEnemy(
       enemyProto.name,
@@ -268,8 +287,9 @@ export class MythicEnemy {
       Math.floor(baseDmg),
       enemyProto.affinity,
       enemyProto.tint,
-      0,
-      enemyProto.spriteName || "sprGoblin1"
+      Math.floor(baseDmg * 0.2),
+      enemyProto.spriteName || "sprGoblin1",
+      mobPushback
     );
   }
 }

@@ -444,8 +444,8 @@ export const MythicShadowApp: React.FC = () => {
   return (
     <div id="mythic-shadow-unified-root" className="w-full flex flex-col font-sans">
       
-      {/* Sleek Subview Header Bar: Only shown when inside a specific window/subview */}
-      {activeView !== 'idle' && (
+      {/* Sleek Subview Header Bar: Only shown when inside a specific window/subview (hidden in combat for full-screen arcade immersion) */}
+      {activeView !== 'idle' && activeView !== 'combat' && (
         <div 
           id="hybrid-header-bar" 
           className="w-full bg-[#0a0b12]/95 border-b border-neutral-800 px-4 py-2.5 flex items-center justify-between gap-3 backdrop-blur z-30 shadow-md"
@@ -465,7 +465,6 @@ export const MythicShadowApp: React.FC = () => {
             <span className="font-cinzel text-sm font-bold text-white uppercase tracking-wider">
               {activeView === 'builder' ? '🥋 Character Builder & Forge' :
                activeView === 'talents' ? '⚡ Talents & Build' :
-               activeView === 'combat' ? '⚔️ Manual Combat Duel' :
                activeView === 'marketplace' ? '🗡️ Sword Forge & Marketplace' :
                activeView === 'roster' ? '👤 Champion Roster' :
                activeView === 'arena' ? '🏆 Ranked Arena' :
@@ -492,7 +491,7 @@ export const MythicShadowApp: React.FC = () => {
 
       {/* View Switcher Containers */}
       {activeView === 'builder' && (
-        <div id="character-builder-wrapper" className="w-full flex-1 min-h-[calc(100vh-65px)]">
+        <div id="character-builder-wrapper" className="w-full flex-1 h-[calc(100dvh-55px)] overflow-y-auto">
           <CustomizationView 
             profile={profile}
             onUpdateProfile={handleUpdateProfile}
@@ -502,7 +501,7 @@ export const MythicShadowApp: React.FC = () => {
       )}
 
       {activeView === 'talents' && (
-        <div id="talents-view-wrapper" className="w-full flex-1 min-h-[calc(100vh-65px)]">
+        <div id="talents-view-wrapper" className="w-full flex-1 h-[calc(100dvh-55px)] overflow-y-auto">
           <TalentsView 
             profile={profile}
             onUpdateProfile={handleUpdateProfile}
@@ -512,7 +511,7 @@ export const MythicShadowApp: React.FC = () => {
       )}
 
       {activeView === 'combat' && activeCombat && (
-        <div id="combat-view-wrapper" className="w-full flex-1 min-h-[calc(100vh-65px)]">
+        <div id="combat-view-wrapper" className="fixed inset-0 z-50 w-full h-full h-[100dvh] flex flex-col overflow-hidden bg-[#07070b]">
           <CombatView 
             playerConfig={createPlayerFighter()}
             enemyConfig={activeCombat.enemy}
@@ -532,7 +531,7 @@ export const MythicShadowApp: React.FC = () => {
       )}
 
       {activeView === 'story' && (
-        <div id="story-view-wrapper" className="w-full flex-1 min-h-[calc(100vh-65px)]">
+        <div id="story-view-wrapper" className="w-full flex-1 h-[calc(100dvh-55px)] overflow-y-auto">
           <StoryView 
             profile={profile}
             onSelectStage={handleStartStoryStage}
@@ -552,7 +551,7 @@ export const MythicShadowApp: React.FC = () => {
       )}
 
       {activeView === 'marketplace' && (
-        <div id="marketplace-view-wrapper" className="w-full flex-1 min-h-[calc(100vh-65px)]">
+        <div id="marketplace-view-wrapper" className="w-full flex-1 min-h-[calc(100vh-65px)] overflow-y-auto">
           <MarketplaceView 
             profile={profile}
             onUpdateProfile={handleUpdateProfile}

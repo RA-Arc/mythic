@@ -540,15 +540,51 @@ export function drawFighter(
 
   // Fighter Colors: Iconic sleek black silhouette with armor trims & glowing accents
   const isNinja = fighter.id === 'char_ninja' || fighter.name.toLowerCase().includes('ninja');
-  const isBloodweaver = fighter.id === 'char_bloodweaver' || fighter.name.toLowerCase().includes('bloodweaver') || (fighter.equipment.weapon?.id && fighter.equipment.weapon.id.includes('blood'));
+  const isBloodweaver = Boolean(fighter.id === 'char_bloodweaver' || fighter.name.toLowerCase().includes('bloodweaver') || (fighter.equipment.weapon?.id && fighter.equipment.weapon.id.includes('blood')));
 
   const silhouetteColor = fighter.isShadowForm ? '#090814' : (isBloodweaver ? '#18070b' : (isNinja ? '#09090d' : '#14141d'));
   const trimColor = isBloodweaver ? '#ef4444' : (isNinja ? '#ef4444' : fighter.equipment.armor.colorScheme.glow);
   const eyeColor = fighter.isShadowForm ? '#a855f7' : (isBloodweaver ? '#ff2b47' : (isNinja ? '#38bdf8' : '#38bdf8'));
 
+  // --- 1. GROUND REFLECTION ON POLISHED ARENA FLOOR ---
+  if (fighter.y <= GROUND_Y + 16) {
+    ctx.save();
+    // Mirror vertically across GROUND_Y waterline
+    ctx.translate(0, GROUND_Y * 2);
+    ctx.scale(1, -0.75); // Vertical mirror foreshortening
+    ctx.globalAlpha = fighter.isShadowForm ? 0.35 : 0.22;
+
+    ctx.save();
+    ctx.translate(rootX, rootY);
+    ctx.scale(dir, 1);
+    renderFighterModel(ctx, fighter, pose, time, isNinja, isBloodweaver, silhouetteColor, trimColor, eyeColor, true);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  // --- 2. PRIMARY FIGHTER ---
   ctx.save();
   ctx.translate(rootX, rootY);
   ctx.scale(dir, 1);
+  renderFighterModel(ctx, fighter, pose, time, isNinja, isBloodweaver, silhouetteColor, trimColor, eyeColor, false);
+  ctx.restore();
+
+  ctx.restore(); // restores camera
+}
+
+function renderFighterModel(
+  ctx: CanvasRenderingContext2D,
+  fighter: FighterEntity,
+  pose: any,
+  time: number,
+  isNinja: boolean,
+  isBloodweaver: boolean,
+  silhouetteColor: string,
+  trimColor: string,
+  eyeColor: string,
+  isReflection = false
+) {
 
   // --- BLOODWEAVER SANGUINE BLOOD ORBS AURA ---
   if (isBloodweaver) {
@@ -1017,8 +1053,6 @@ function drawWeapon(
       break;
     }
   }
-
-  ctx.restore();
 }
 
 // Draw Floating Numbers and Particles

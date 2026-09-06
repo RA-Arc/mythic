@@ -168,6 +168,43 @@ export function createMythicUI(
           </div>
         </div>
 
+        <button id="fullscreen-toggle-btn" style="
+          background: rgba(22, 27, 34, 0.9);
+          border: 1px solid #30363d;
+          color: #c9d1d9;
+          padding: 6px 10px;
+          font-size: 11px;
+          font-weight: 700;
+          border-radius: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          transition: all 0.15s ease;
+        " title="Toggle Fullscreen View">
+          <span>${document.fullscreenElement ? '🗗' : '⛶'}</span>
+          <span>${document.fullscreenElement ? 'EXIT' : 'FULL'}</span>
+        </button>
+
+        <button id="transform-arc-angel-btn" style="
+          background: ${hero.chi >= 50 ? 'linear-gradient(135deg, #ffd700 0%, #ff7b72 100%)' : '#161b22'};
+          border: 1px solid #ffd700;
+          color: ${hero.chi >= 50 ? '#000' : '#ffd700'};
+          padding: 6px 10px;
+          font-size: 11px;
+          font-weight: 800;
+          border-radius: 6px;
+          cursor: ${hero.chi >= 50 ? 'pointer' : 'not-allowed'};
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          opacity: ${hero.chi >= 50 ? '1' : '0.5'};
+          transition: all 0.15s ease;
+        " title="Transform into Arc Angel">
+          <span>🌟</span>
+          <span>TRANSFORM</span>
+        </button>
+
         <button id="master-game-menu-btn" style="
           background: linear-gradient(135deg, #1f6feb 0%, #093988 100%);
           border: 1px solid #58a6ff;
@@ -189,6 +226,25 @@ export function createMythicUI(
         </button>
       </div>
     `;
+
+    topBar.querySelector("#fullscreen-toggle-btn")?.addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    });
+
+    topBar.querySelector("#transform-arc-angel-btn")?.addEventListener("click", () => {
+      if (hero.canTransform("arc_angel")) {
+        hero.transform("arc_angel", 20);
+        renderTopBar(); // Re-render to update the top bar state
+      }
+    });
 
     topBar.querySelector("#master-game-menu-btn")?.addEventListener("click", () => {
       if (modalWindow.style.display === "flex") {
@@ -240,6 +296,10 @@ export function createMythicUI(
       modalWindow.style.display = "none";
       return;
     }
+
+    // Capture scroll
+    const scrollableDiv = modalWindow.querySelector('[style*="overflow-y: auto"]') as HTMLElement;
+    const scrollPos = scrollableDiv ? scrollableDiv.scrollTop : 0;
 
     modalWindow.style.display = "flex";
 
@@ -1900,10 +1960,16 @@ export function createMythicUI(
           ${modalNavPills}
         </div>
       </div>
-      <div style="flex: 1; overflow: hidden; position: relative;">
+      <div id="modal-body-container" style="flex: 1; overflow: hidden; position: relative;">
         ${bodyHtml}
       </div>
     `;
+
+    // Restore scroll
+    const restoreDiv = modalWindow.querySelector('[style*="overflow-y: auto"]') as HTMLElement;
+    if (restoreDiv) {
+      restoreDiv.scrollTop = scrollPos;
+    }
 
     // Attach Event Listeners for Active Modal Elements
     modalWindow.querySelector("#close-modal-btn")?.addEventListener("click", () => {
