@@ -410,6 +410,48 @@ export class ParticleSystem {
     }
   }
 
+  public emitBloodweaverAura(x: number, y: number) {
+    if (Math.random() < 0.6) {
+      const g = new Graphics();
+      const isOrb = Math.random() < 0.3;
+      const col = Math.random() < 0.6 ? 0xff2b47 : (Math.random() < 0.5 ? 0xdc2626 : 0xfecdd3);
+      const sz = isOrb ? 3.5 : 2;
+      g.fill(col).circle(0, 0, sz);
+      g.x = x + (Math.random() - 0.5) * 44;
+      g.y = y + (Math.random() - 0.5) * 36;
+      this.container.addChild(g);
+      this.particles.push({
+        gfx: g,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: -1.2 - Math.random() * 1.8,
+        life: 25 + Math.random() * 18,
+        maxLife: 42,
+        decayAlpha: true
+      });
+    }
+  }
+
+  public emitNinjaAura(x: number, y: number) {
+    if (Math.random() < 0.45) {
+      const g = new Graphics();
+      const isRed = Math.random() < 0.3;
+      const col = isRed ? 0xef4444 : (Math.random() < 0.5 ? 0x27272a : 0x09090b);
+      const sz = isRed ? 2.5 : 3.5;
+      g.fill(col).circle(0, 0, sz);
+      g.x = x + (Math.random() - 0.5) * 40;
+      g.y = y + 10 + (Math.random() - 0.5) * 20;
+      this.container.addChild(g);
+      this.particles.push({
+        gfx: g,
+        vx: -1.5 - Math.random() * 1.2,
+        vy: -0.8 - Math.random() * 0.8,
+        life: 20 + Math.random() * 15,
+        maxLife: 35,
+        decayAlpha: true
+      });
+    }
+  }
+
   public updateAmbientEraWeather(eraId: EraId) {
     if (this.ambientParticles.length < 35) {
       const g = new Graphics();

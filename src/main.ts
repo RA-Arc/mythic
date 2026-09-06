@@ -435,6 +435,48 @@ async function initGame() {
   eraWatermark.y = 56;
   hudLayer.addChild(eraWatermark);
 
+  // Real-time Champion Floating Badge in the Idle Arena
+  const championBadge = new Text({
+    text: hero.isBloodweaver() ? "🩸 Crimson Bloodweaver" : (hero.isNinja() ? "🥷 Shadow Ninja" : `⚔️ ${hero.activeCharacterName}`),
+    style: new TextStyle({
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      fontSize: 12,
+      fill: hero.isBloodweaver() ? "#f43f5e" : (hero.isNinja() ? "#f87171" : "#93c5fd"),
+      fontWeight: "bold",
+      stroke: { color: "#000000", width: 3 },
+    })
+  });
+  championBadge.anchor.set(0.5, 1);
+  hudLayer.addChild(championBadge);
+
+  const updateChampionBadge = () => {
+    let icon = "⚔️";
+    let color = "#93c5fd";
+    if (hero.isBloodweaver()) {
+      icon = "🩸";
+      color = "#f43f5e";
+    } else if (hero.isNinja()) {
+      icon = "🥷";
+      color = "#f87171";
+    } else if (hero.activeCharacterId === "char_marcus" || hero.activeCharacterId === "char_ironclad") {
+      icon = "🛡️";
+      color = "#fbbf24";
+    } else if (hero.activeCharacterId === "char_ling") {
+      icon = "🎋";
+      color = "#34d399";
+    } else if (hero.activeCharacterId === "char_chronos") {
+      icon = "⏳";
+      color = "#c084fc";
+    }
+
+    championBadge.text = `${icon} ${hero.activeCharacterName}`;
+    championBadge.style.fill = color;
+  };
+
+  hero.onCharacterChanged = () => {
+    updateChampionBadge();
+  };
+
   // Combat Interaction Flip Animation Systems
   interface CombatFlipState {
     active: boolean;
@@ -673,6 +715,58 @@ async function initGame() {
     const maxHp = hero.getEffectiveMaxHp();
     drawBar(hero.sprite.x, hero.sprite.y + 44, hero.hp, maxHp, 70, 7, 0x2ea043);
     drawBar(hero.sprite.x, hero.sprite.y + 53, hero.xp, hero.maxXp, 70, 4, 0x1f6feb);
+
+    // Position champion badge above hero
+    championBadge.x = hero.sprite.x;
+    championBadge.y = hero.sprite.y - 48;
+
+    // Real-time Champion Visual Dynamics in Idle Engine
+    if (hero.isBloodweaver()) {
+      particles.emitBloodweaverAura(hero.sprite.x, hero.sprite.y);
+
+      // Render 3 orbiting crimson blood orbs around Bloodweaver
+      const orbTime = performance.now() * 0.0035;
+      for (let i = 0; i < 3; i++) {
+        const orbAngle = orbTime + (i * Math.PI * 2) / 3;
+        const orbX = hero.sprite.x + Math.cos(orbAngle) * 34;
+        const orbY = hero.sprite.y - 6 + Math.sin(orbAngle) * 15;
+        // Outer crimson halo
+        hudGfx.fill({ color: 0xef4444, alpha: 0.85 }).circle(orbX, orbY, 5);
+        // Bright core highlight
+        hudGfx.fill({ color: 0xfecdd3, alpha: 0.95 }).circle(orbX - 1.2, orbY - 1.2, 1.8);
+      }
+
+      // Draw Bloodweaver Kusarigama sickle & barbed chain
+      const facing = hero.sprite.scale.x < 0 ? -1 : 1;
+      const sickleHandX = hero.sprite.x + (facing * 16);
+      const sickleHandY = hero.sprite.y + 4;
+      const swingOffset = hero.state === 'attack' ? Math.sin(performance.now() * 0.02) * 22 : 0;
+      const sickleTipX = sickleHandX + facing * (24 + swingOffset);
+      const sickleTipY = sickleHandY - 14 + (swingOffset * 0.5);
+
+      // Crimson barbed chain
+      hudGfx.stroke({ width: 2, color: 0xef4444, alpha: 0.85 });
+      hudGfx.moveTo(sickleHandX, sickleHandY);
+      hudGfx.quadraticCurveTo(sickleHandX + facing * 12, sickleHandY - 20, sickleTipX, sickleTipY);
+
+      // Blood sickle crescent blade
+      hudGfx.fill({ color: 0xdc2626, alpha: 0.95 });
+      hudGfx.circle(sickleTipX, sickleTipY, 7);
+      hudGfx.stroke({ width: 2.2, color: 0xf87171, alpha: 1 });
+      hudGfx.circle(sickleTipX, sickleTipY, 7);
+    } else if (hero.isNinja()) {
+      particles.emitNinjaAura(hero.sprite.x, hero.sprite.y);
+
+      // Draw Ninja twin Ninjato blades
+      const facing = hero.sprite.scale.x < 0 ? -1 : 1;
+      const bladeX = hero.sprite.x + (facing * 14);
+      const bladeY = hero.sprite.y + 2;
+      const swingRot = hero.state === 'attack' ? (facing * -0.6) : (facing * 0.2);
+
+      hudGfx.stroke({ width: 2.5, color: 0xef4444, alpha: 0.9 });
+      hudGfx.moveTo(bladeX, bladeY);
+      hudGfx.lineTo(bladeX + facing * 18 * Math.cos(swingRot), bladeY - 22 + Math.sin(swingRot) * 10);
+    }
 
     // Render Transformation Dynamic Aura (Pure celestial particles, no vector circle)
     if (hero.isTransformed) {

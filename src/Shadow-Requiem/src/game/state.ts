@@ -30,8 +30,8 @@ export const INITIAL_PLAYER_PROFILE: PlayerProfile = {
     ...RANGED_CATALOG,
   ],
   unlockedPerks: ['perk_crit_damage', 'perk_shadow_generation'],
-  activeCharacterId: 'char_raven',
-  unlockedCharacterIds: ['char_raven'],
+  activeCharacterId: 'char_ninja',
+  unlockedCharacterIds: ['char_ninja', 'char_bloodweaver', 'char_raven'],
   battleStats: {
     fightsWon: 0,
     fightsLost: 0,
@@ -51,8 +51,8 @@ export function loadPlayerProfile(): PlayerProfile {
         ...parsed,
         activeCharacterId: parsed.activeCharacterId || 'char_raven',
         unlockedCharacterIds: Array.isArray(parsed.unlockedCharacterIds) && parsed.unlockedCharacterIds.length > 0
-          ? parsed.unlockedCharacterIds
-          : ['char_raven'],
+          ? Array.from(new Set([...parsed.unlockedCharacterIds, 'char_ninja', 'char_bloodweaver', 'char_raven']))
+          : ['char_ninja', 'char_bloodweaver', 'char_raven'],
         equipped: {
           ...INITIAL_PLAYER_PROFILE.equipped,
           ...parsed.equipped,

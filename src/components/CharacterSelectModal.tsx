@@ -317,7 +317,14 @@ export const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
                       alt={selectedChar.signatureWeapon.name}
                       className="w-full h-full object-contain filter drop-shadow"
                       onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
+                        const target = e.currentTarget;
+                        const w = selectedChar.signatureWeapon;
+                        if (w.swordIndex !== undefined && !target.getAttribute('data-fallback')) {
+                          target.setAttribute('data-fallback', '1');
+                          target.src = `/assets/weapons/sword_${w.swordIndex}.png`;
+                        } else {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }
                       }}
                     />
                   </div>

@@ -55,23 +55,9 @@ export function createMythicUI(
   `;
   uiContainer.appendChild(topBar);
 
-  // Bottom Navigation Bar
+  // Bottom Navigation Bar intentionally omitted to eliminate duplicates and maintain clean viewport
   const navBar = document.createElement("div");
   navBar.id = "bottom-nav-bar";
-  navBar.style.cssText = `
-    pointer-events: auto;
-    width: 100%;
-    height: 52px;
-    background: linear-gradient(0deg, rgba(13, 17, 23, 0.98) 0%, rgba(22, 27, 34, 0.95) 100%);
-    border-top: 2px solid #30363d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 0 16px;
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
-  `;
-  uiContainer.appendChild(navBar);
 
   // Modal / Drawer Window for Panels
   const modalWindow = document.createElement("div");
@@ -79,14 +65,14 @@ export function createMythicUI(
   modalWindow.style.cssText = `
     pointer-events: auto;
     position: absolute;
-    top: 56px;
-    left: 20px;
-    width: 1240px;
-    height: 604px;
-    background: rgba(13, 17, 23, 0.97);
+    top: 54px;
+    left: 16px;
+    right: 16px;
+    height: 648px;
+    background: rgba(13, 17, 23, 0.98);
     border: 2px solid #388bfd;
     border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.85);
+    box-shadow: 0 8px 36px rgba(0,0,0,0.9);
     display: none;
     flex-direction: column;
     overflow: hidden;
@@ -96,6 +82,7 @@ export function createMythicUI(
 
   // Active Tab state
   type TabType =
+    | "hub"
     | "hero"
     | "chi"
     | "rogue"
@@ -168,8 +155,8 @@ export function createMythicUI(
         </div>
       </div>
 
-      <!-- Chi Force Gauge & Instant Transform -->
-      <div style="display: flex; align-items: center; gap: 10px; font-size: 11px;">
+      <!-- Chi Force Gauge & Single Master Game Menu Button -->
+      <div style="display: flex; align-items: center; gap: 12px; font-size: 11px;">
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <span style="color: ${isTransformed ? '#ffd700' : '#00f0ff'}; font-weight: bold;">
@@ -181,135 +168,50 @@ export function createMythicUI(
           </div>
         </div>
 
-        <button id="quick-transform-btn" style="
-          background: ${isTransformed ? '#ff9900' : hero.chi >= 50 ? '#1f6feb' : '#21262d'};
-          border: 1px solid ${isTransformed ? '#ffd700' : hero.chi >= 50 ? '#58a6ff' : '#30363d'};
-          color: #fff;
-          padding: 4px 10px;
+        <button id="master-game-menu-btn" style="
+          background: linear-gradient(135deg, #1f6feb 0%, #093988 100%);
+          border: 1px solid #58a6ff;
+          color: #ffffff;
+          padding: 6px 14px;
           font-size: 11px;
           font-weight: 800;
-          border-radius: 4px;
+          border-radius: 6px;
           cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
+          box-shadow: 0 2px 10px rgba(31, 111, 235, 0.4);
+          letter-spacing: 0.5px;
+          transition: all 0.15s ease;
         ">
-          ${isTransformed ? '✨ REVERT FORM' : '🪶 ARC ANGEL'}
-        </button>
-
-        <div style="height: 18px; width: 1px; background: #30363d;"></div>
-        <button id="quick-boss-toggle" style="background: ${combatEngine.bossMode ? '#b62324' : '#238636'}; border: 1px solid #30363d; color: #fff; padding: 4px 8px; font-size: 10px; font-weight: bold; border-radius: 4px; cursor: pointer;">
-          ${combatEngine.bossMode ? '⚔️ BOSS ACTIVE' : '💀 SUMMON BOSS'}
-        </button>
-        <button id="quick-battlefield-btn" style="background: #1f6feb; border: 1px solid #388bfd; color: #ffffff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 4px;" title="Battleground Archive — 20 Packs / 80 Seamless Battlefields">
-          <span>🖼️</span>
-          <span>BATTLEFIELDS (80)</span>
-        </button>
-        <button id="audio-toggle-btn" style="background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">
-          ${soundEngine.isMuted() ? '🔇' : '🔊'}
+          <span>⚡</span>
+          <span>GAME LINKS &amp; WINDOWS</span>
         </button>
       </div>
     `;
 
-    topBar.querySelector("#quick-transform-btn")?.addEventListener("click", () => {
-      if (hero.isTransformed) {
-        hero.revertTransform();
+    topBar.querySelector("#master-game-menu-btn")?.addEventListener("click", () => {
+      if (modalWindow.style.display === "flex") {
+        modalWindow.style.display = "none";
+        activeTab = null;
       } else {
-        if (hero.canTransform("arc_angel")) {
-          hero.transform("arc_angel", 20);
-          soundEngine.playEraAdvance();
-          logger.printLine("*** SURGED WITH CHI: TRANSFORMED INTO ARC ANGEL! ***", "#ffd700");
-        } else {
-          logger.printLine(`Need at least 50 Chi Force to transform (Have ${Math.floor(hero.chi)}).`, "#ff7b72");
-        }
+        activeTab = "hub";
+        modalWindow.style.display = "flex";
+        renderModalContent();
       }
-      renderTopBar();
-      if (activeTab) renderModalContent();
     });
 
     topBar.querySelector("#quick-debt-pill")?.addEventListener("click", () => {
       activeTab = "debts";
       modalWindow.style.display = "flex";
       renderModalContent();
-      renderNavBar();
-    });
-
-    topBar.querySelector("#quick-boss-toggle")?.addEventListener("click", () => {
-      combatEngine.bossMode = !combatEngine.bossMode;
-      if (combatEngine.bossMode && combatEngine.activeEnemy && !combatEngine.activeEnemy.isBoss) {
-        combatEngine.activeEnemy = null; // Forces immediate boss spawn
-      }
-      renderTopBar();
-    });
-
-    topBar.querySelector("#quick-battlefield-btn")?.addEventListener("click", () => {
-      activeTab = "battlegrounds";
-      modalWindow.style.display = "flex";
-      renderModalContent();
-      renderNavBar();
-    });
-
-    topBar.querySelector("#audio-toggle-btn")?.addEventListener("click", () => {
-      soundEngine.toggleMute();
-      renderTopBar();
     });
   }
 
-  // Render Bottom Nav Buttons
+  // Render Bottom Nav Buttons (Omitted to remove button duplicates & overload)
   function renderNavBar() {
-    const tabs: Array<{ id: TabType; label: string; icon: string }> = [
-      { id: "hero", label: "HERO & GEAR", icon: "👤" },
-      { id: "chi", label: "ARC ANGEL & CHI", icon: "🪶" },
-      { id: "rogue", label: "ROGUE TROOPS & RELICS", icon: "⚔️" },
-      { id: "debts", label: "UNDERWORLD DEBT", icon: "🪙" },
-      { id: "investigation", label: "ERA INVESTIGATION", icon: "🔍" },
-      { id: "combat", label: "BATTLE & SKILLS", icon: "⚡" },
-      { id: "timeline", label: "ERA TIMELINE", icon: "🗺️" },
-      { id: "memories", label: "MEMORIES & TRAITS", icon: "🧠" },
-      { id: "forge", label: "MYTHIC FORGE", icon: "🔨" },
-      { id: "lore", label: "LORE CODEX", icon: "📜" },
-      { id: "ascension", label: "ASCENSION & SAVE", icon: "🌌" },
-      { id: "battlegrounds", label: "BATTLEFIELDS", icon: "🖼️" }
-    ];
-
-    navBar.innerHTML = tabs
-      .map(
-        t => `
-      <button class="nav-tab-btn" data-tab="${t.id}" style="
-        background: ${activeTab === t.id ? '#1f6feb' : '#21262d'};
-        border: 1px solid ${activeTab === t.id ? '#58a6ff' : '#30363d'};
-        color: ${activeTab === t.id ? '#ffffff' : '#c9d1d9'};
-        padding: 6px 14px;
-        font-size: 12px;
-        font-weight: 700;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.15s ease;
-      ">
-        <span>${t.icon}</span>
-        <span>${t.label}</span>
-      </button>
-    `
-      )
-      .join("");
-
-    navBar.querySelectorAll(".nav-tab-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
-        const targetTab = (btn as HTMLElement).getAttribute("data-tab") as TabType;
-        if (activeTab === targetTab) {
-          activeTab = null;
-          modalWindow.style.display = "none";
-        } else {
-          activeTab = targetTab;
-          modalWindow.style.display = "flex";
-          renderModalContent();
-        }
-        renderNavBar();
-      });
-    });
+    // Navigation bar intentionally removed from bottom to eliminate duplicate buttons.
+    // All navigation windows and links are consolidated in the top 'GAME LINKS & WINDOWS' master menu.
   }
 
   // Equipment slots definition
@@ -348,6 +250,231 @@ export function createMythicUI(
 
     let headerTitle = "";
     let bodyHtml = "";
+
+    // 0. MASTER GAME LINKS & WINDOWS HUB
+    if (activeTab === "hub") {
+      headerTitle = `⚡ MYTHIC HUMAN HISTORY — GAME LINKS & WINDOWS`;
+
+      bodyHtml = `
+        <div style="padding: 20px 24px; height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
+          <!-- Section 1: Combat & Action Arenas -->
+          <div>
+            <div style="font-size: 12px; font-weight: 800; color: #ff7b72; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+              <span>⚔️</span> <span>COMBAT &amp; ACTION ARENAS</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px;">
+              <!-- Card: Manual Combat Arena -->
+              <div class="hub-action-card" id="hub-btn-manual-duel" style="background: linear-gradient(135deg, rgba(218,54,51,0.2) 0%, rgba(13,17,23,0.9) 100%); border: 1px solid #f85149; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; transition: transform 0.15s ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #ff7b72; font-size: 13px;">⚡ MANUAL COMBAT ARENA</span>
+                  <span style="font-size: 10px; background: #da3633; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">LIVE 1v1</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Real-time manual fighting arena with active combos, directional strikes, blocks, and physics.</div>
+              </div>
+
+              <!-- Card: Crimson Duel -->
+              <div class="hub-action-card" id="hub-btn-crimson-duel" style="background: #161b22; border: 1px solid #ff7b72; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #ff7b72; font-size: 13px;">🩸 CRIMSON BLOODWEAVER DUEL</span>
+                  <span style="font-size: 10px; color: #ff7b72; font-weight: bold;">DUEL</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Duel the feared Bloodweaver champion in single combat to hone martial reflexes and parries.</div>
+              </div>
+
+              <!-- Card: Ranked Arena -->
+              <div class="hub-action-card" id="hub-btn-ranked-arena" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #79c0ff; font-size: 13px;">🏆 RANKED ARENA</span>
+                  <span style="font-size: 10px; color: #79c0ff; font-weight: bold;">PVP</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Climb the mythic PvP competitive ladder, earn rank points, and unlock arena masteries.</div>
+              </div>
+
+              <!-- Card: Battle Tactics & Spells -->
+              <div class="hub-action-card" data-open-tab="combat" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #d2a8ff; font-size: 13px;">⚡ BATTLE TACTICS &amp; SPELLS</span>
+                  <span style="font-size: 10px; color: #d2a8ff; font-weight: bold;">SPELLS</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Configure auto-cast combat spells, offensive elemental surges, and passive battle buffs.</div>
+              </div>
+
+              <!-- Card: Summon Boss Mode Toggle -->
+              <div class="hub-action-card" id="hub-toggle-boss-btn" style="background: ${combatEngine.bossMode ? 'rgba(218,54,51,0.25)' : '#161b22'}; border: 1px solid ${combatEngine.bossMode ? '#f85149' : '#30363d'}; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #f85149; font-size: 13px;">💀 ERA BOSS AWAKENING</span>
+                  <span style="font-size: 10px; background: ${combatEngine.bossMode ? '#da3633' : '#238636'}; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">
+                    ${combatEngine.bossMode ? 'ACTIVE' : 'IDLE'}
+                  </span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Toggle instantaneous awakening of the historical Era Boss for supreme rewards.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Champions, Customization & Hero Equipment -->
+          <div>
+            <div style="font-size: 12px; font-weight: 800; color: #ffd700; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+              <span>👤</span> <span>CHAMPIONS, CUSTOMIZATION &amp; EQUIPMENT</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px;">
+              <!-- Card: Choose Champion / Roster -->
+              <div class="hub-action-card" id="hub-btn-choose-champ" style="background: linear-gradient(135deg, rgba(210,153,34,0.2) 0%, rgba(13,17,23,0.9) 100%); border: 1px solid #d29922; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #ffd700; font-size: 13px;">👤 CHOOSE CHAMPION ROSTER</span>
+                  <span style="font-size: 10px; background: #b08800; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">ROSTER</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Select your active champion (Shinobi, Bloodweaver, Raven, etc.) with shared cross-progression.</div>
+              </div>
+
+              <!-- Card: Character Builder & Forge -->
+              <div class="hub-action-card" id="hub-btn-char-builder" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #f97316; font-size: 13px;">🥋 CHARACTER BUILDER &amp; FORGE</span>
+                  <span style="font-size: 10px; color: #f97316; font-weight: bold;">BUILDER</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Full visual customization armory: equip gear pieces, color palettes, and cosmetic armor sets.</div>
+              </div>
+
+              <!-- Card: Hero Profile & 16-Slot Gear -->
+              <div class="hub-action-card" data-open-tab="hero" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #7ee787; font-size: 13px;">👤 HERO PROFILE &amp; 16-SLOT GEAR</span>
+                  <span style="font-size: 10px; color: #7ee787; font-weight: bold;">EQUIPMENT</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">View all 16 equipment slots (rings, ear, helm, weapons, relics), cosmic alignment, and inventory.</div>
+              </div>
+
+              <!-- Card: Arc Angel & Chi Force -->
+              <div class="hub-action-card" data-open-tab="chi" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #00f0ff; font-size: 13px;">🪶 ARC ANGEL &amp; CHI FORCE</span>
+                  <span style="font-size: 10px; color: #00f0ff; font-weight: bold;">TRANSFORM</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Channel Chi force to activate Arc Angel, Werewolf, or Drake transformations with massive multipliers.</div>
+              </div>
+
+              <!-- Card: Mini-Ninja Squad -->
+              <div class="hub-action-card" data-open-tab="rogue" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #e3b341; font-size: 13px;">⚔️ MINI-NINJA SQUAD &amp; RELICS</span>
+                  <span style="font-size: 10px; color: #e3b341; font-weight: bold;">SQUAD</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Recruit and level tactical companion troops, spend Soul Diamonds, and trigger rogue relics.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Weaponry, Forges & Economy -->
+          <div>
+            <div style="font-size: 12px; font-weight: 800; color: #79c0ff; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+              <span>🗡️</span> <span>WEAPONRY, FORGES &amp; ECONOMY</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px;">
+              <!-- Card: Sword Forge (70 Weapons) -->
+              <div class="hub-action-card" id="hub-btn-sword-forge" style="background: linear-gradient(135deg, rgba(88,166,255,0.2) 0%, rgba(13,17,23,0.9) 100%); border: 1px solid #388bfd; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #79c0ff; font-size: 13px;">🗡️ SWORD FORGE &amp; MARKETPLACE</span>
+                  <span style="font-size: 10px; background: #1f6feb; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">70 WEAPONS</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Browse, purchase, and equip all 70 high-tier swords with clean transparent cut-out assets.</div>
+              </div>
+
+              <!-- Card: Mythic Material Forge -->
+              <div class="hub-action-card" data-open-tab="forge" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #ffd700; font-size: 13px;">🔨 MYTHIC MATERIAL FORGE</span>
+                  <span style="font-size: 10px; color: #ffd700; font-weight: bold;">CRAFT</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Craft high-rarity equipment using historical era raw materials, titan cores, and echo shards.</div>
+              </div>
+
+              <!-- Card: Underworld Debt -->
+              <div class="hub-action-card" data-open-tab="debts" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #ff7b72; font-size: 13px;">🪙 UNDERWORLD DEBT</span>
+                  <span style="font-size: 10px; color: #ff7b72; font-weight: bold;">LOANS</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Debts in the Depths: manage underworld debt, hire debt collectors, or summon debt minions.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: World, Lore, Battlefields & Systems -->
+          <div>
+            <div style="font-size: 12px; font-weight: 800; color: #d2a8ff; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+              <span>🗺️</span> <span>WORLD, LORE &amp; SYSTEMS</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px;">
+              <!-- Card: Era Timeline -->
+              <div class="hub-action-card" data-open-tab="timeline" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #ffd700; font-size: 13px;">🗺️ 10 HISTORICAL ERAS TIMELINE</span>
+                  <span style="font-size: 10px; color: #ffd700; font-weight: bold;">ERAS</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Advance across 10 historical epochs from the Era of Dawn to the Cyberpunk Horizon.</div>
+              </div>
+
+              <!-- Card: Era Investigation -->
+              <div class="hub-action-card" data-open-tab="investigation" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #79c0ff; font-size: 13px;">🔍 ERA INVESTIGATION &amp; SECRETS</span>
+                  <span style="font-size: 10px; color: #79c0ff; font-weight: bold;">SECRETS</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Investigate epoch anomalies, uncover forgotten ruins, and unlock permanent relics.</div>
+              </div>
+
+              <!-- Card: Ancestral Memories -->
+              <div class="hub-action-card" data-open-tab="memories" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #bb86fc; font-size: 13px;">🧠 ANCESTRAL MEMORIES &amp; TRAITS</span>
+                  <span style="font-size: 10px; color: #bb86fc; font-weight: bold;">TRAITS</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Awaken ancestral memories, invest trait points, and activate cosmic lineage passives.</div>
+              </div>
+
+              <!-- Card: Battlefields Archive (80) -->
+              <div class="hub-action-card" data-open-tab="battlegrounds" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #58a6ff; font-size: 13px;">🖼️ BATTLEFIELDS ARCHIVE</span>
+                  <span style="font-size: 10px; background: #21262d; color: #58a6ff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">80 MAPS</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Browse and activate any of 80 seamless high-definition scenic backdrops across 20 packs.</div>
+              </div>
+
+              <!-- Card: Lore Codex -->
+              <div class="hub-action-card" data-open-tab="lore" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #e6edf3; font-size: 13px;">📜 HISTORICAL LORE CODEX</span>
+                  <span style="font-size: 10px; color: #8b949e; font-weight: bold;">LORE</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Read chronicle lore entries, mythic bestiaries, and historical epoch archives.</div>
+              </div>
+
+              <!-- Card: Ascension & Save -->
+              <div class="hub-action-card" data-open-tab="ascension" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #f2cc60; font-size: 13px;">🌌 ASCENSION &amp; SAVE BACKUP</span>
+                  <span style="font-size: 10px; color: #f2cc60; font-weight: bold;">SAVES</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Ascend into next cosmic reincarnation for Titan Cores, or export/import save data.</div>
+              </div>
+
+              <!-- Card: Sound Engine Mute/Unmute -->
+              <div class="hub-action-card" id="hub-toggle-sound-btn" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 800; color: #e6edf3; font-size: 13px;">🔇 SOUND &amp; AUDIO SETTINGS</span>
+                  <span style="font-size: 10px; background: ${soundEngine.isMuted() ? '#da3633' : '#238636'}; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">
+                    ${soundEngine.isMuted() ? 'MUTED' : 'UNMUTED'}
+                  </span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Click to toggle global game sound effects and ambient combat audio on/off.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     // 1. HERO TAB
     if (activeTab === "hero") {
@@ -1717,6 +1844,7 @@ export function createMythicUI(
 
     // Quick Tab Switcher inside Modal
     const modalTabsList: Array<{ id: TabType; label: string; icon: string }> = [
+      { id: "hub", label: "MENU HUB", icon: "⚡" },
       { id: "hero", label: "HERO & GEAR", icon: "👤" },
       { id: "combat", label: "BATTLE", icon: "⚡" },
       { id: "forge", label: "FORGE", icon: "🔨" },
@@ -1794,6 +1922,82 @@ export function createMythicUI(
         }
       });
     });
+
+    // 0. Hub Event Listeners
+    if (activeTab === "hub") {
+      modalWindow.querySelectorAll(".hub-action-card[data-open-tab]").forEach(card => {
+        card.addEventListener("click", () => {
+          const tab = card.getAttribute("data-open-tab") as TabType;
+          if (tab) {
+            activeTab = tab;
+            renderModalContent();
+          }
+        });
+      });
+
+      modalWindow.querySelector("#hub-btn-manual-duel")?.addEventListener("click", () => {
+        modalWindow.style.display = "none";
+        activeTab = null;
+        if (typeof (window as any).openManualCombatArena === "function") {
+          (window as any).openManualCombatArena();
+        }
+      });
+
+      modalWindow.querySelector("#hub-btn-crimson-duel")?.addEventListener("click", () => {
+        modalWindow.style.display = "none";
+        activeTab = null;
+        if (typeof (window as any).openCrimsonDuel === "function") {
+          (window as any).openCrimsonDuel();
+        }
+      });
+
+      modalWindow.querySelector("#hub-btn-ranked-arena")?.addEventListener("click", () => {
+        modalWindow.style.display = "none";
+        activeTab = null;
+        if (typeof (window as any).openRankedArena === "function") {
+          (window as any).openRankedArena();
+        }
+      });
+
+      modalWindow.querySelector("#hub-btn-choose-champ")?.addEventListener("click", () => {
+        modalWindow.style.display = "none";
+        activeTab = null;
+        if (typeof (window as any).openCharacterSelectModal === "function") {
+          (window as any).openCharacterSelectModal();
+        }
+      });
+
+      modalWindow.querySelector("#hub-btn-char-builder")?.addEventListener("click", () => {
+        modalWindow.style.display = "none";
+        activeTab = null;
+        if (typeof (window as any).openCharacterBuilder === "function") {
+          (window as any).openCharacterBuilder();
+        }
+      });
+
+      modalWindow.querySelector("#hub-btn-sword-forge")?.addEventListener("click", () => {
+        modalWindow.style.display = "none";
+        activeTab = null;
+        if (typeof (window as any).openSwordForge === "function") {
+          (window as any).openSwordForge();
+        }
+      });
+
+      modalWindow.querySelector("#hub-toggle-boss-btn")?.addEventListener("click", () => {
+        combatEngine.bossMode = !combatEngine.bossMode;
+        if (combatEngine.bossMode && combatEngine.activeEnemy && !combatEngine.activeEnemy.isBoss) {
+          combatEngine.activeEnemy = null;
+        }
+        renderModalContent();
+        renderTopBar();
+      });
+
+      modalWindow.querySelector("#hub-toggle-sound-btn")?.addEventListener("click", () => {
+        soundEngine.toggleMute();
+        renderModalContent();
+        renderTopBar();
+      });
+    }
 
     // 1. Hero Event Listeners
     if (activeTab === "hero") {
@@ -2314,6 +2518,8 @@ export function createMythicUI(
     toggleTab,
     getActiveTab: () => activeTab
   };
+  (window as any).openGameMenu = () => openTab("hub");
+  (window as any).openGameMenuTab = (tab: TabType) => openTab(tab);
 
   // Initial render
   renderTopBar();

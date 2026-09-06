@@ -20,7 +20,8 @@ import {
   Crown,
   Check,
   Sword,
-  Users
+  Users,
+  Gamepad2
 } from 'lucide-react';
 
 interface CombatViewProps {
@@ -56,6 +57,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [matchOver, setMatchOver] = useState<'victory' | 'defeat' | null>(null);
   const [roundBanner, setRoundBanner] = useState<string>('ROUND 1');
+  const [showTouchControls, setShowTouchControls] = useState<boolean>(false);
 
   // UI status mirrors for HUD
   const [p1Hp, setP1Hp] = useState(playerConfig.stats.health);
@@ -483,31 +485,35 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
   return (
     <div id="combat-view-container" className="relative w-full h-full flex flex-col bg-[#07070b] overflow-hidden select-none">
-      {/* HUD Header: Health, Shadow Bar, Rounds, Timer */}
-      <div id="combat-hud-top" className="absolute top-0 left-0 right-0 z-20 px-4 py-3 flex flex-col items-center pointer-events-none">
-        <div className="w-full max-w-5xl flex items-center justify-between gap-4">
+      {/* HUD Header: Ultra-Clean Minimalist Health, Timer & Controls */}
+      <div id="combat-hud-top" className="absolute top-0 left-0 right-0 z-20 px-4 py-2.5 flex flex-col items-center pointer-events-none">
+        <div className="w-full max-w-5xl flex items-center justify-between gap-3">
           
-          {/* Player 1 HUD Box */}
+          {/* Player 1 Minimalist HUD */}
           <div id="p1-hud" className="flex-1 flex flex-col items-start">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-cinzel text-sm font-bold tracking-wider text-amber-300">
+              <span className="font-cinzel text-xs sm:text-sm font-bold tracking-wider text-amber-300 drop-shadow">
                 {playerConfig.name}
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 uppercase font-semibold">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 uppercase font-semibold">
                 {playerConfig.equipment.weapon.weaponType}
               </span>
+              <div className="flex gap-1 ml-1">
+                <div className={`w-2 h-2 rounded-full border border-amber-500/70 ${playerScore >= 1 ? 'bg-amber-400 shadow-sm shadow-amber-500/50' : 'bg-transparent'}`} />
+                <div className={`w-2 h-2 rounded-full border border-amber-500/70 ${playerScore >= 2 ? 'bg-amber-400 shadow-sm shadow-amber-500/50' : 'bg-transparent'}`} />
+              </div>
             </div>
 
-            {/* Health Bar */}
-            <div className="w-full h-4 bg-neutral-900 border border-neutral-700/80 rounded-sm overflow-hidden relative shadow-inner">
+            {/* Ultra-Slim Health Bar */}
+            <div className="w-full h-2.5 bg-neutral-900/90 border border-neutral-700/80 rounded-sm overflow-hidden relative shadow-inner">
               <div 
                 className="h-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-400 transition-all duration-150"
                 style={{ width: `${Math.max(0, (p1Hp / p1MaxHp) * 100)}%` }}
               />
             </div>
 
-            {/* Shadow Energy Bar */}
-            <div className="w-4/5 h-2 bg-neutral-950 border border-neutral-800 rounded-sm mt-1 overflow-hidden relative">
+            {/* Slim Shadow Energy Bar */}
+            <div className="w-3/4 h-1.5 bg-neutral-950/80 border border-neutral-800 rounded-sm mt-0.5 overflow-hidden relative">
               <div 
                 className={`h-full transition-all duration-200 ${
                   p1IsShadowForm 
@@ -519,45 +525,40 @@ export const CombatView: React.FC<CombatViewProps> = ({
                 style={{ width: `${Math.min(100, p1Shadow)}%` }}
               />
             </div>
-            
-            {/* Rounds Won Markers */}
-            <div className="flex gap-1.5 mt-1">
-              <div className={`w-3 h-3 rounded-full border border-amber-500/70 ${playerScore >= 1 ? 'bg-amber-400 shadow-md shadow-amber-500/50' : 'bg-transparent'}`} />
-              <div className={`w-3 h-3 rounded-full border border-amber-500/70 ${playerScore >= 2 ? 'bg-amber-400 shadow-md shadow-amber-500/50' : 'bg-transparent'}`} />
-            </div>
           </div>
 
-          {/* Center Timer & Match Title */}
-          <div id="match-timer-box" className="flex flex-col items-center px-4">
-            <div className="text-[11px] font-medium tracking-widest text-neutral-400 uppercase mb-0.5">
-              {matchTitle}
-            </div>
-            <div className="w-14 h-12 flex items-center justify-center bg-black/70 border border-neutral-700 rounded-md shadow-lg shadow-black/80 font-cinzel text-2xl font-black text-white">
+          {/* Center Clean Floating Timer */}
+          <div id="match-timer-box" className="flex flex-col items-center px-3 pointer-events-auto">
+            <span className="font-cinzel text-2xl sm:text-3xl font-black text-amber-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-none">
               {roundTimer}
-            </div>
+            </span>
           </div>
 
-          {/* Player 2 / Enemy HUD Box */}
+          {/* Player 2 / Enemy Minimalist HUD */}
           <div id="p2-hud" className="flex-1 flex flex-col items-end">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 uppercase font-semibold">
+              <div className="flex gap-1 mr-1">
+                <div className={`w-2 h-2 rounded-full border border-rose-500/70 ${enemyScore >= 2 ? 'bg-rose-400 shadow-sm shadow-rose-500/50' : 'bg-transparent'}`} />
+                <div className={`w-2 h-2 rounded-full border border-rose-500/70 ${enemyScore >= 1 ? 'bg-rose-400 shadow-sm shadow-rose-500/50' : 'bg-transparent'}`} />
+              </div>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 uppercase font-semibold">
                 {enemyConfig.equipment.weapon.weaponType}
               </span>
-              <span className="font-cinzel text-sm font-bold tracking-wider text-rose-300">
+              <span className="font-cinzel text-xs sm:text-sm font-bold tracking-wider text-rose-300 drop-shadow">
                 {enemyConfig.name}
               </span>
             </div>
 
-            {/* Health Bar */}
-            <div className="w-full h-4 bg-neutral-900 border border-neutral-700/80 rounded-sm overflow-hidden relative shadow-inner">
+            {/* Ultra-Slim Health Bar */}
+            <div className="w-full h-2.5 bg-neutral-900/90 border border-neutral-700/80 rounded-sm overflow-hidden relative shadow-inner">
               <div 
                 className="h-full bg-gradient-to-l from-rose-600 via-rose-500 to-amber-500 transition-all duration-150 ml-auto"
                 style={{ width: `${Math.max(0, (p2Hp / p2MaxHp) * 100)}%` }}
               />
             </div>
 
-            {/* Shadow Energy Bar */}
-            <div className="w-4/5 h-2 bg-neutral-950 border border-neutral-800 rounded-sm mt-1 overflow-hidden relative">
+            {/* Slim Shadow Energy Bar */}
+            <div className="w-3/4 h-1.5 bg-neutral-950/80 border border-neutral-800 rounded-sm mt-0.5 overflow-hidden relative ml-auto">
               <div 
                 className={`h-full transition-all duration-200 ml-auto ${
                   p2IsShadowForm 
@@ -569,39 +570,53 @@ export const CombatView: React.FC<CombatViewProps> = ({
                 style={{ width: `${Math.min(100, p2Shadow)}%` }}
               />
             </div>
-
-            {/* Rounds Won Markers */}
-            <div className="flex gap-1.5 mt-1">
-              <div className={`w-3 h-3 rounded-full border border-rose-500/70 ${enemyScore >= 2 ? 'bg-rose-400 shadow-md shadow-rose-500/50' : 'bg-transparent'}`} />
-              <div className={`w-3 h-3 rounded-full border border-rose-500/70 ${enemyScore >= 1 ? 'bg-rose-400 shadow-md shadow-rose-500/50' : 'bg-transparent'}`} />
-            </div>
           </div>
 
         </div>
 
-        {/* Top Floating Controls: Sound & Pause */}
-        <div className="w-full max-w-5xl flex justify-end items-center gap-2 mt-2 pointer-events-auto">
-          <SoundButton id="combat-sound-btn" size="sm" showLabel={true} />
+        {/* Minimalist Action Controls Row: Exit, Touch Toggle, Sound & Pause */}
+        <div className="w-full max-w-5xl flex justify-between items-center mt-1.5 pointer-events-auto">
           <button 
-            id="pause-toggle-btn"
-            onClick={() => setIsPaused(!isPaused)}
-            className="px-2.5 py-1.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 border border-neutral-700 backdrop-blur transition-all flex items-center gap-1.5 text-xs font-cinzel font-bold shadow-sm"
-            title="Pause Match"
+            id="combat-exit-btn"
+            onClick={onExit}
+            className="px-2 py-1 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-neutral-800 backdrop-blur transition-all flex items-center gap-1 text-[11px] font-cinzel font-bold shadow-sm"
+            title="Exit Combat"
           >
-            {isPaused ? <Play className="w-3.5 h-3.5 text-amber-400" /> : <Pause className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline text-[11px] uppercase tracking-wider">{isPaused ? 'Resume' : 'Pause'}</span>
+            <span>←</span>
+            <span>Exit</span>
           </button>
+          
+          <div className="flex items-center gap-1.5">
+            <button
+              id="toggle-touch-controls-btn"
+              onClick={() => setShowTouchControls(!showTouchControls)}
+              className={`p-1.5 rounded-lg border backdrop-blur transition-all text-xs flex items-center gap-1 ${
+                showTouchControls 
+                  ? 'bg-amber-500/20 border-amber-500/60 text-amber-300' 
+                  : 'bg-neutral-900/80 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+              }`}
+              title={showTouchControls ? 'Hide Virtual Touch Controls' : 'Show Virtual Touch Controls'}
+            >
+              <Gamepad2 className="w-3.5 h-3.5" />
+            </button>
+            <SoundButton id="combat-sound-btn" size="sm" showLabel={false} />
+            <button 
+              id="pause-toggle-btn"
+              onClick={() => setIsPaused(!isPaused)}
+              className="p-1.5 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 backdrop-blur transition-all flex items-center shadow-sm"
+              title={isPaused ? 'Resume Match' : 'Pause Match'}
+            >
+              {isPaused ? <Play className="w-3.5 h-3.5 text-amber-400" /> : <Pause className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Combo Counter HUD Display */}
       {comboCount >= 2 && (
-        <div id="combo-hud-popup" className="absolute top-28 left-8 z-20 pointer-events-none animate-bounce">
-          <div className="font-cinzel text-3xl font-black text-amber-400 drop-shadow-[0_2px_10px_rgba(245,158,11,0.7)]">
-            {comboCount} <span className="text-xl">HITS</span>
-          </div>
-          <div className="text-xs font-semibold tracking-widest text-indigo-300 uppercase">
-            {comboCount >= 5 ? 'Unstoppable Shadow Flow!' : 'Flurry Strike!'}
+        <div id="combo-hud-popup" className="absolute top-20 left-6 z-20 pointer-events-none animate-bounce">
+          <div className="font-cinzel text-2xl font-black text-amber-400 drop-shadow-[0_2px_10px_rgba(245,158,11,0.7)]">
+            {comboCount} <span className="text-sm">HITS</span>
           </div>
         </div>
       )}
@@ -615,142 +630,144 @@ export const CombatView: React.FC<CombatViewProps> = ({
         </div>
       )}
 
-      {/* Primary 60FPS Fighting Canvas */}
+      {/* Primary 60FPS Fighting Canvas - Pure Unobstructed View */}
       <canvas 
         ref={canvasRef} 
         id="combat-canvas"
         className="w-full h-full flex-1 touch-none"
       />
 
-      {/* On-Screen Touch & Gamepad Controls Overlay for Mobile/Desktop */}
-      <div id="combat-controls-overlay" className="absolute bottom-4 left-0 right-0 z-20 px-6 flex justify-between items-end pointer-events-none">
-        
-        {/* D-Pad Virtual Movement */}
-        <div id="virtual-dpad" className="flex flex-col items-center gap-2 pointer-events-auto bg-black/50 p-3 rounded-2xl border border-neutral-800/80 backdrop-blur-md">
-          <button 
-            id="btn-move-jump"
-            onPointerDown={() => {
-              const f1 = f1Ref.current;
-              if (f1.y >= GROUND_Y) {
-                f1.vy = -14;
-                f1.action = 'jump';
-              }
-            }}
-            className="w-12 h-12 rounded-xl bg-neutral-900/90 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200"
-          >
-            UP
-          </button>
-          <div className="flex gap-3">
+      {/* Optional Virtual Touch Controls (Hidden by default for super clean action) */}
+      {showTouchControls && (
+        <div id="combat-controls-overlay" className="absolute bottom-4 left-0 right-0 z-20 px-6 flex justify-between items-end pointer-events-none animate-fadeIn">
+          
+          {/* D-Pad Virtual Movement */}
+          <div id="virtual-dpad" className="flex flex-col items-center gap-1.5 pointer-events-auto bg-black/40 p-2 rounded-2xl border border-neutral-800/60 backdrop-blur-sm">
             <button 
-              id="btn-move-left"
+              id="btn-move-jump"
               onPointerDown={() => {
-                f1Ref.current.action = f1Ref.current.direction === 1 ? 'walk_bwd' : 'walk_fwd';
+                const f1 = f1Ref.current;
+                if (f1.y >= GROUND_Y) {
+                  f1.vy = -14;
+                  f1.action = 'jump';
+                }
               }}
-              onPointerUp={() => { f1Ref.current.action = 'idle'; }}
-              className="w-12 h-12 rounded-xl bg-neutral-900/90 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200"
+              className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-200"
             >
-              LEFT
+              UP
             </button>
+            <div className="flex gap-2">
+              <button 
+                id="btn-move-left"
+                onPointerDown={() => {
+                  f1Ref.current.action = f1Ref.current.direction === 1 ? 'walk_bwd' : 'walk_fwd';
+                }}
+                onPointerUp={() => { f1Ref.current.action = 'idle'; }}
+                className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-200"
+              >
+                LEFT
+              </button>
+              <button 
+                id="btn-move-crouch"
+                onPointerDown={() => { f1Ref.current.action = 'crouch'; }}
+                onPointerUp={() => { f1Ref.current.action = 'idle'; }}
+                className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-200"
+              >
+                DOWN
+              </button>
+              <button 
+                id="btn-move-right"
+                onPointerDown={() => {
+                  f1Ref.current.action = f1Ref.current.direction === 1 ? 'walk_fwd' : 'walk_bwd';
+                }}
+                onPointerUp={() => { f1Ref.current.action = 'idle'; }}
+                className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-200"
+              >
+                RIGHT
+              </button>
+            </div>
+          </div>
+
+          {/* Action Strike Buttons */}
+          <div id="virtual-action-buttons" className="flex items-center gap-2 pointer-events-auto bg-black/40 p-2 rounded-2xl border border-neutral-800/60 backdrop-blur-sm">
+            {/* Shadow Form / Ability Button */}
             <button 
-              id="btn-move-crouch"
-              onPointerDown={() => { f1Ref.current.action = 'crouch'; }}
-              onPointerUp={() => { f1Ref.current.action = 'idle'; }}
-              className="w-12 h-12 rounded-xl bg-neutral-900/90 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200"
+              id="btn-shadow-ability"
+              onClick={() => triggerShadowFormOrAbility(f1Ref.current)}
+              className={`w-12 h-12 rounded-full flex flex-col items-center justify-center border transition-all ${
+                p1IsShadowForm 
+                  ? 'bg-purple-600 border-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.8)] animate-pulse' 
+                  : p1Shadow >= 100 
+                    ? 'bg-indigo-600/90 border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-bounce' 
+                    : 'bg-neutral-900/70 border-neutral-700 opacity-60'
+              }`}
+              title="Shadow Form / Shadow Ability [Shift / Space]"
             >
-              DOWN
+              <Zap className="w-4 h-4 text-white" />
+              <span className="text-[8px] font-bold text-purple-200">SHADOW</span>
             </button>
+
+            {/* Low Sweep Attack */}
             <button 
-              id="btn-move-right"
-              onPointerDown={() => {
-                f1Ref.current.action = f1Ref.current.direction === 1 ? 'walk_fwd' : 'walk_bwd';
-              }}
-              onPointerUp={() => { f1Ref.current.action = 'idle'; }}
-              className="w-12 h-12 rounded-xl bg-neutral-900/90 active:bg-amber-500/40 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200"
+              id="btn-attack-down"
+              onClick={() => triggerAction(f1Ref.current, 'attack_down', 0.5)}
+              className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500 border border-neutral-700 flex flex-col items-center justify-center text-[9px] font-bold text-neutral-300"
+              title="Low Sweep [C]"
             >
-              RIGHT
+              LOW
+            </button>
+
+            {/* Forward Lunge */}
+            <button 
+              id="btn-attack-fwd"
+              onClick={() => triggerAction(f1Ref.current, 'attack_forward', 0.55)}
+              className="w-10 h-10 rounded-xl bg-neutral-900/80 active:bg-amber-500 border border-neutral-700 flex flex-col items-center justify-center text-[9px] font-bold text-neutral-300"
+              title="Lunge Strike [G]"
+            >
+              THRUST
+            </button>
+
+            {/* Heavy Charged Breaker */}
+            <button 
+              id="btn-attack-heavy"
+              onClick={() => triggerAction(f1Ref.current, 'attack_heavy', 0.8)}
+              className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border border-amber-400 shadow-md shadow-amber-950 flex flex-col items-center justify-center text-[10px] font-black text-white"
+              title="Heavy Breaker [H]"
+            >
+              HEAVY
+            </button>
+
+            {/* Light Combo Strike */}
+            <button 
+              id="btn-attack-light"
+              onClick={() => triggerAction(f1Ref.current, 'attack_neutral_1', 0.45)}
+              className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-800 active:from-indigo-400 active:to-indigo-600 border-2 border-indigo-400 shadow-lg shadow-indigo-950 flex flex-col items-center justify-center text-xs font-black text-white"
+              title="Slash Combo [F]"
+            >
+              STRIKE
             </button>
           </div>
+
         </div>
-
-        {/* Action Strike Buttons */}
-        <div id="virtual-action-buttons" className="flex items-center gap-3 pointer-events-auto bg-black/50 p-3 rounded-2xl border border-neutral-800/80 backdrop-blur-md">
-          {/* Shadow Form / Ability Button */}
-          <button 
-            id="btn-shadow-ability"
-            onClick={() => triggerShadowFormOrAbility(f1Ref.current)}
-            className={`w-14 h-14 rounded-full flex flex-col items-center justify-center border transition-all ${
-              p1IsShadowForm 
-                ? 'bg-purple-600 border-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.8)] animate-pulse' 
-                : p1Shadow >= 100 
-                  ? 'bg-indigo-600/90 border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-bounce' 
-                  : 'bg-neutral-900/70 border-neutral-700 opacity-60'
-            }`}
-            title="Shadow Form / Shadow Ability [Shift / Space]"
-          >
-            <Zap className="w-5 h-5 text-white" />
-            <span className="text-[9px] font-bold text-purple-200">SHADOW</span>
-          </button>
-
-          {/* Low Sweep Attack */}
-          <button 
-            id="btn-attack-down"
-            onClick={() => triggerAction(f1Ref.current, 'attack_down', 0.5)}
-            className="w-12 h-12 rounded-xl bg-neutral-900 active:bg-amber-500 border border-neutral-700 flex flex-col items-center justify-center text-[10px] font-bold text-neutral-300"
-            title="Low Sweep [C]"
-          >
-            LOW
-          </button>
-
-          {/* Forward Lunge */}
-          <button 
-            id="btn-attack-fwd"
-            onClick={() => triggerAction(f1Ref.current, 'attack_forward', 0.55)}
-            className="w-12 h-12 rounded-xl bg-neutral-900 active:bg-amber-500 border border-neutral-700 flex flex-col items-center justify-center text-[10px] font-bold text-neutral-300"
-            title="Lunge Strike [G]"
-          >
-            THRUST
-          </button>
-
-          {/* Heavy Charged Breaker */}
-          <button 
-            id="btn-attack-heavy"
-            onClick={() => triggerAction(f1Ref.current, 'attack_heavy', 0.8)}
-            className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border border-amber-400 shadow-md shadow-amber-950 flex flex-col items-center justify-center text-xs font-black text-white"
-            title="Heavy Breaker [H]"
-          >
-            HEAVY
-          </button>
-
-          {/* Light Combo Strike */}
-          <button 
-            id="btn-attack-light"
-            onClick={() => triggerAction(f1Ref.current, 'attack_neutral_1', 0.45)}
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-800 active:from-indigo-400 active:to-indigo-600 border-2 border-indigo-400 shadow-lg shadow-indigo-950 flex flex-col items-center justify-center text-sm font-black text-white"
-            title="Slash Combo [F]"
-          >
-            STRIKE
-          </button>
-        </div>
-
-      </div>
-
-      {/* Keyboard Controls Helper bar */}
-      <div id="controls-hint-bar" className="absolute bottom-1 left-0 right-0 z-10 hidden md:flex justify-center text-[11px] text-neutral-400 gap-4 pointer-events-none">
-        <span><strong className="text-neutral-200">A/D</strong> Move</span>
-        <span><strong className="text-neutral-200">W</strong> Jump</span>
-        <span><strong className="text-neutral-200">S</strong> Crouch</span>
-        <span><strong className="text-amber-300">F</strong> Slash</span>
-        <span><strong className="text-amber-300">G</strong> Lunge</span>
-        <span><strong className="text-amber-300">H</strong> Heavy</span>
-        <span><strong className="text-amber-300">C</strong> Sweep</span>
-        <span><strong className="text-purple-300">Shift/Space</strong> Shadow Form</span>
-      </div>
+      )}
 
       {/* Pause Modal Overlay */}
       {isPaused && (
         <div id="pause-modal" className="absolute inset-0 z-40 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="w-full max-w-sm bg-[#12131c] border border-neutral-700 rounded-xl p-6 flex flex-col items-center shadow-2xl">
-            <h2 className="font-cinzel text-2xl font-bold text-amber-400 mb-6">Combat Paused</h2>
+            <h2 className="font-cinzel text-2xl font-bold text-amber-400 mb-4">Combat Paused</h2>
+
+            {/* Keyboard Guide */}
+            <div className="w-full p-3 rounded-lg bg-neutral-900/90 border border-neutral-800 text-[11px] text-neutral-300 mb-5 grid grid-cols-2 gap-1.5">
+              <div><strong className="text-amber-300">A / D:</strong> Move</div>
+              <div><strong className="text-amber-300">W:</strong> Jump</div>
+              <div><strong className="text-amber-300">S:</strong> Crouch</div>
+              <div><strong className="text-amber-300">F:</strong> Light Strike</div>
+              <div><strong className="text-amber-300">G:</strong> Forward Lunge</div>
+              <div><strong className="text-amber-300">H:</strong> Heavy Strike</div>
+              <div><strong className="text-amber-300">C:</strong> Low Sweep</div>
+              <div><strong className="text-purple-300">Shift / Space:</strong> Shadow Form</div>
+            </div>
             
             <div className="w-full flex flex-col gap-3">
               <button 

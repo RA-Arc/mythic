@@ -89,6 +89,8 @@ export const MythicShadowApp: React.FC = () => {
 
   const [newlyUnlockedCharacter, setNewlyUnlockedCharacter] = useState<PlayableCharacter | null>(null);
 
+  const activeChar = getCharacterById(profile.activeCharacterId || 'char_raven');
+
   // Sync profile to PixiJS engine whenever it updates
   const syncToPixiEngine = useCallback((currentProfile: PlayerProfile) => {
     if (typeof (window as any).gameHero?.applyShadowRequiemProfile === 'function') {
@@ -104,12 +106,19 @@ export const MythicShadowApp: React.FC = () => {
   useEffect(() => {
     syncToPixiEngine(profile);
 
-    // Register global window listeners for native DOM buttons in index.html
+    // Register active champion info on window for in-game HUD
+    (window as any).activeChampionName = activeChar.name;
+    (window as any).activeChampionLevel = profile.level;
+
+    // Register global window listeners for native DOM buttons
     (window as any).openCharacterSelectModal = () => {
       setShowCharSelectModal(true);
     };
     (window as any).openCharacterBuilder = () => {
       setActiveView('builder');
+    };
+    (window as any).openSwordForge = () => {
+      setActiveView('marketplace');
     };
     (window as any).openTalentsView = () => {
       setActiveView('talents');
@@ -117,13 +126,22 @@ export const MythicShadowApp: React.FC = () => {
     (window as any).openManualCombatArena = () => {
       handleStartQuickDuel();
     };
+    (window as any).openCrimsonDuel = () => {
+      handleStartQuickDuel();
+    };
+    (window as any).openRankedArena = () => {
+      setActiveView('arena');
+    };
+    (window as any).openRoster = () => {
+      setActiveView('roster');
+    };
     (window as any).openShadowStory = () => {
       setActiveView('story');
     };
     (window as any).switchAppView = (view: AppViewMode) => {
       setActiveView(view);
     };
-  }, [profile, syncToPixiEngine]);
+  }, [profile, syncToPixiEngine, activeChar.name]);
 
   // Handle profile updates from Character Builder, Talents, or Marketplace
   const handleUpdateProfile = (updated: PlayerProfile) => {
@@ -387,7 +405,6 @@ export const MythicShadowApp: React.FC = () => {
     }
   };
 
-  const activeChar = getCharacterById(profile.activeCharacterId || 'char_raven');
   const equippedWeapon = profile.equipped.weapon;
 
   // Describe weapon dynamics
@@ -415,14 +432,11 @@ export const MythicShadowApp: React.FC = () => {
   // Toggle visibility of the native canvas container based on active view
   useEffect(() => {
     const canvasContainer = document.getElementById('center-viewport-container');
-    const nativeDock = document.getElementById('screen-dock-nav');
     if (canvasContainer) {
       if (activeView === 'idle') {
         canvasContainer.style.display = 'block';
-        if (nativeDock) nativeDock.style.display = 'flex';
       } else {
         canvasContainer.style.display = 'none';
-        if (nativeDock) nativeDock.style.display = 'none';
       }
     }
   }, [activeView]);
@@ -430,242 +444,48 @@ export const MythicShadowApp: React.FC = () => {
   return (
     <div id="mythic-shadow-unified-root" className="w-full flex flex-col font-sans">
       
-      {/* Top Hybrid Navigation Bar */}
-      <div 
-        id="hybrid-header-bar" 
-        className="w-full bg-[#0a0b12]/95 border-b border-neutral-800 px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 backdrop-blur z-30"
-      >
-        {/* Left: Active Champion Badge & Character Select Trigger */}
-        <div className="flex items-center gap-3">
-          <button
-            id="header-champion-pill"
-            onClick={() => {
-              sound.playClick();
-              setShowCharSelectModal(true);
-            }}
-            className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 hover:border-amber-500/50 transition-all group shadow-sm text-left"
-            title="Click to Choose Character / View Roster"
-          >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-600/30 to-purple-600/30 border border-amber-500/40 flex items-center justify-center text-amber-300 font-bold text-xs">
-              ⚔️
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-cinzel text-xs font-bold text-neutral-100 group-hover:text-amber-300 transition-colors">
-                  {activeChar.name}
-                </span>
-                <span className="text-[10px] text-amber-400/90 font-semibold bg-amber-950/60 px-1.5 py-0.2 rounded border border-amber-800/40">
-                  Lv.{profile.level}
-                </span>
-              </div>
-              <div className="text-[10px] text-neutral-400 capitalize">
-                {activeChar.title} • <span className="text-amber-400">Change Hero</span>
-              </div>
-            </div>
-          </button>
-
-          {/* Active Weapon Dynamics Indicator */}
-          <div 
-            id="header-weapon-badge"
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#11131e] border border-neutral-800 text-xs"
-            title={dynamics.desc}
-          >
-            <span className="text-sm">🗡️</span>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-neutral-200">{equippedWeapon.name}</span>
-                <span className="text-[10px] font-bold text-indigo-300 bg-indigo-950/80 px-1.5 rounded border border-indigo-800/60 uppercase">
-                  {dynamics.tag}
-                </span>
-              </div>
-              <span className="text-[10px] text-neutral-400">{dynamics.label}: {dynamics.desc}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Center / Navigation Tabs */}
-        <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-neutral-800 text-xs overflow-x-auto max-w-full">
-          <button
-            id="tab-idle-timeline"
-            onClick={() => {
-              sound.playClick();
-              setActiveView('idle');
-            }}
-            className={`px-3 py-1.5 rounded-lg font-cinzel font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-              activeView === 'idle'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-black shadow-md shadow-amber-950/50'
-                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/70'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Idle Timeline</span>
-          </button>
-
-          <button
-            id="tab-char-builder"
-            onClick={() => {
-              sound.playClick();
-              setActiveView('builder');
-            }}
-            className={`px-3 py-1.5 rounded-lg font-cinzel font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-              activeView === 'builder'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-black shadow-md shadow-amber-950/50'
-                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/70'
-            }`}
-          >
-            <Wrench className="w-3.5 h-3.5" />
-            <span>Character Builder</span>
-          </button>
-
-          <button
-            id="tab-talents"
-            onClick={() => {
-              sound.playClick();
-              setActiveView('talents');
-            }}
-            className={`px-3 py-1.5 rounded-lg font-cinzel font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-              activeView === 'talents'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-black shadow-md shadow-amber-950/50'
-                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/70'
-            }`}
-          >
-            <Zap className="w-3.5 h-3.5" />
-            <span>Talents & Build</span>
-          </button>
-
-          <button
-            id="tab-manual-combat"
-            onClick={() => {
-              sound.playWhoosh();
-              handleStartQuickDuel();
-            }}
-            className={`px-3 py-1.5 rounded-lg font-cinzel font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-              activeView === 'combat'
-                ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md shadow-red-950/50'
-                : 'text-red-400 hover:text-red-300 hover:bg-red-950/40 border border-red-900/40'
-            }`}
-          >
-            <Swords className="w-3.5 h-3.5" />
-            <span>Manual Duel Arena</span>
-          </button>
-
-          <button
-            id="tab-story"
-            onClick={() => {
-              sound.playClick();
-              setActiveView('story');
-            }}
-            className={`px-3 py-1.5 rounded-lg font-cinzel font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-              activeView === 'story'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-black shadow-md'
-                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/70'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Story Acts</span>
-          </button>
-
-          <button
-            id="tab-arena"
-            onClick={() => {
-              sound.playClick();
-              setActiveView('arena');
-            }}
-            className={`px-3 py-1.5 rounded-lg font-cinzel font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-              activeView === 'arena'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-black shadow-md'
-                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/70'
-            }`}
-          >
-            <Award className="w-3.5 h-3.5" />
-            <span>Ranked Arena</span>
-          </button>
-
-          <button
-            id="tab-marketplace"
-            onClick={() => {
-              sound.playClick();
-              setActiveView('marketplace');
-            }}
-            className={`px-3 py-1.5 rounded-lg font-cinzel font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-              activeView === 'marketplace'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-black shadow-md'
-                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/70'
-            }`}
-          >
-            <Store className="w-3.5 h-3.5" />
-            <span>Sword Forge</span>
-          </button>
-
-          <button
-            id="tab-roster"
-            onClick={() => {
-              sound.playClick();
-              setActiveView('roster');
-            }}
-            className={`px-3 py-1.5 rounded-lg font-cinzel font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-              activeView === 'roster'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-black shadow-md'
-                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/70'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span>Roster</span>
-          </button>
-        </div>
-
-        {/* Right: Currency & Audio */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 bg-black/60 px-3 py-1.5 rounded-xl border border-neutral-800 text-xs">
-            <span className="text-amber-400 font-semibold" title="Gold">
-              🪙 {profile.gold}
-            </span>
-            <span className="text-indigo-400 font-semibold" title="Shadow Cores">
-              🔮 {profile.shadowCores}
-            </span>
-            <span className="text-cyan-400 font-semibold" title="Gems">
-              💎 {profile.gems}
-            </span>
-          </div>
-          <SoundButton id="header-sound-btn" size="sm" />
-        </div>
-      </div>
-
-      {/* Floating Action Banner When In Idle Mode */}
-      {activeView === 'idle' && (
+      {/* Sleek Subview Header Bar: Only shown when inside a specific window/subview */}
+      {activeView !== 'idle' && (
         <div 
-          id="idle-mode-action-bar"
-          className="w-full bg-gradient-to-r from-[#0d0f1a] via-[#141624] to-[#0d0f1a] border-b border-neutral-800 px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs shadow-md z-20"
+          id="hybrid-header-bar" 
+          className="w-full bg-[#0a0b12]/95 border-b border-neutral-800 px-4 py-2.5 flex items-center justify-between gap-3 backdrop-blur z-30 shadow-md"
         >
-          <div className="flex items-center gap-2 text-neutral-300">
-            <span className="text-amber-400 font-cinzel font-bold">⚡ Part Idle, Part Manual:</span>
-            <span>You are currently in the <strong>Idle Historical Timeline</strong>. Farm wave resources, or jump directly into manual combat!</span>
-          </div>
-
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
-              id="idle-choose-char-btn"
+              id="header-back-btn"
               onClick={() => {
                 sound.playClick();
-                setShowCharSelectModal(true);
+                setActiveView('idle');
               }}
-              className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 font-cinzel text-xs flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-amber-300 hover:text-amber-200 border border-neutral-700 font-cinzel text-xs font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95"
             >
-              <User className="w-3.5 h-3.5 text-amber-400" />
-              <span>Choose Hero</span>
+              <span>←</span>
+              <span>Back to Game</span>
             </button>
+            <span className="font-cinzel text-sm font-bold text-white uppercase tracking-wider">
+              {activeView === 'builder' ? '🥋 Character Builder & Forge' :
+               activeView === 'talents' ? '⚡ Talents & Build' :
+               activeView === 'combat' ? '⚔️ Manual Combat Duel' :
+               activeView === 'marketplace' ? '🗡️ Sword Forge & Marketplace' :
+               activeView === 'roster' ? '👤 Champion Roster' :
+               activeView === 'arena' ? '🏆 Ranked Arena' :
+               activeView === 'story' ? '📜 Story Acts' : 'Game View'}
+            </span>
+          </div>
 
-            <button
-              id="idle-enter-manual-combat-btn"
-              onClick={() => {
-                sound.playWhoosh();
-                handleStartQuickDuel();
-              }}
-              className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-cinzel font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-red-950/60 transition-all active:scale-95 animate-pulse"
-            >
-              <Swords className="w-4 h-4" />
-              <span>ENTER MANUAL COMBAT DUEL</span>
-            </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 bg-black/60 px-3 py-1.5 rounded-xl border border-neutral-800 text-xs">
+              <span className="text-amber-400 font-semibold" title="Gold">
+                🪙 {profile.gold}
+              </span>
+              <span className="text-indigo-400 font-semibold" title="Shadow Cores">
+                🔮 {profile.shadowCores}
+              </span>
+              <span className="text-cyan-400 font-semibold" title="Gems">
+                💎 {profile.gems}
+              </span>
+            </div>
+            <SoundButton id="header-sound-btn" size="sm" />
           </div>
         </div>
       )}

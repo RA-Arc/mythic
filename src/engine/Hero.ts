@@ -114,26 +114,73 @@ export class Hero {
   inventory: RPGItem[] = [];
 
   // Shadow Requiem Champion & Weapon Dynamics Matrix
-  activeCharacterId: string = "char_raven";
-  activeCharacterName: string = "Shadow Raven";
-  activeCharacterTitle: string = "Rift Walker";
+  activeCharacterId: string = "char_ninja";
+  activeCharacterName: string = "Shadow Ninja";
+  activeCharacterTitle: string = "Grandmaster Shinobi";
   activeFaction: Faction = "heralds";
   equippedShadowWeapon: GearItem | null = null;
   equippedShadowHelm: GearItem | null = null;
   equippedShadowArmor: GearItem | null = null;
   equippedShadowRanged: GearItem | null = null;
   unlockedPerks: string[] = [];
+  public onCharacterChanged?: (hero: Hero) => void;
+
+  public isBloodweaver(): boolean {
+    return (
+      this.activeCharacterId === "char_bloodweaver" ||
+      this.activeCharacterName.toLowerCase().includes("bloodweaver") ||
+      Boolean(this.equippedShadowWeapon?.id?.includes("blood"))
+    );
+  }
+
+  public isNinja(): boolean {
+    return (
+      this.activeCharacterId === "char_ninja" ||
+      this.activeCharacterName.toLowerCase().includes("ninja") ||
+      Boolean(this.equippedShadowWeapon?.id?.includes("ninja"))
+    );
+  }
+
+  public updateChampionVisuals() {
+    if (this.isTransformed) return;
+
+    if (this.isBloodweaver()) {
+      this.sprite.tint = 0xff3b4e; // Vivid crimson blood-red tone
+      this.sprite.scale.set(1.06);
+    } else if (this.isNinja()) {
+      this.sprite.tint = 0xe4e4e7; // Clean dark shinobi silver-charcoal
+      this.sprite.scale.set(1.0);
+    } else if (this.activeCharacterId === "char_marcus" || this.activeCharacterId === "char_ironclad") {
+      this.sprite.tint = 0xfef08a; // Golden steel armor
+      this.sprite.scale.set(1.15);
+    } else if (this.activeCharacterId === "char_ling") {
+      this.sprite.tint = 0x6ee7b7; // Jade green dynasty tone
+      this.sprite.scale.set(1.0);
+    } else if (this.activeCharacterId === "char_chronos") {
+      this.sprite.tint = 0xc084fc; // Deep void titan purple
+      this.sprite.scale.set(1.22);
+    } else if (this.activeCharacterId === "char_kibo") {
+      this.sprite.tint = 0x818cf8; // Singularity cyber-core indigo
+      this.sprite.scale.set(1.05);
+    } else {
+      this.sprite.tint = 0x93c5fd; // Shadow Raven rift blue
+      this.sprite.scale.set(1.0);
+    }
+  }
 
   public applyShadowRequiemProfile(profile: PlayerProfile) {
-    this.activeCharacterId = profile.activeCharacterId || "char_raven";
-    this.activeCharacterName = profile.name || "Shadow Raven";
-    this.activeCharacterTitle = profile.title || "Rift Walker";
+    this.activeCharacterId = profile.activeCharacterId || "char_ninja";
+    this.activeCharacterName = profile.name || "Shadow Ninja";
+    this.activeCharacterTitle = profile.title || "Grandmaster Shinobi";
     this.activeFaction = profile.factionAffinity || "heralds";
     this.equippedShadowWeapon = profile.equipped?.weapon || null;
     this.equippedShadowHelm = profile.equipped?.helm || null;
     this.equippedShadowArmor = profile.equipped?.armor || null;
     this.equippedShadowRanged = profile.equipped?.ranged || null;
     this.unlockedPerks = profile.unlockedPerks || [];
+
+    this.updateChampionVisuals();
+    this.onCharacterChanged?.(this);
   }
 
   constructor() {
@@ -246,8 +293,7 @@ export class Hero {
     this.isTransformed = false;
     this.formTimer = 0;
     this.holyShieldHp = 0;
-    this.sprite.tint = 0xffffff;
-    this.sprite.scale.set(1.0);
+    this.updateChampionVisuals();
     this.setState("idle");
   }
 

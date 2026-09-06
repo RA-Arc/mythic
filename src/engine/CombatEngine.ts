@@ -233,6 +233,23 @@ export class CombatEngine {
       this.particles.addFloatingText(`+${leechAmt} Leech`, this.hero.sprite.x, this.hero.sprite.y - 50, "#ff4444", 18);
     }
 
+    // Bloodweaver Sanguine Siphon Mastery
+    if (this.hero.isBloodweaver()) {
+      const siphonAmt = Math.max(3, Math.floor(actualDmg * 0.20));
+      this.hero.heal(siphonAmt);
+      this.particles.spawnSpellEffect(this.activeEnemy.sprite.x, this.activeEnemy.sprite.y, 0xff2b47, 20);
+      this.particles.addFloatingText(`+${siphonAmt} 🩸 Sanguine Siphon`, this.hero.sprite.x, this.hero.sprite.y - 70, "#f43f5e", 17, true);
+    }
+
+    // Ninja Shinobi Critical Precision
+    if (this.hero.isNinja()) {
+      this.particles.spawnSpellEffect(this.activeEnemy.sprite.x, this.activeEnemy.sprite.y, 0xef4444, 14);
+      if (isCrit || Math.random() < 0.4) {
+        this.particles.addFloatingText("🥷 SHINOBI FLURRY", this.hero.sprite.x, this.hero.sprite.y - 70, "#f87171", 16, true);
+        this.hero.gainChi(3);
+      }
+    }
+
     // Shadow Requiem Weapon Dynamics Triggers
     const shadowWpn = this.hero.equippedShadowWeapon;
     if (shadowWpn) {

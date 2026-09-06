@@ -539,19 +539,55 @@ export function drawFighter(
   }
 
   // Fighter Colors: Iconic sleek black silhouette with armor trims & glowing accents
-  const silhouetteColor = fighter.isShadowForm ? '#090814' : '#14141d';
-  const trimColor = fighter.equipment.armor.colorScheme.glow;
-  const eyeColor = fighter.isShadowForm ? '#a855f7' : '#38bdf8';
+  const isNinja = fighter.id === 'char_ninja' || fighter.name.toLowerCase().includes('ninja');
+  const isBloodweaver = fighter.id === 'char_bloodweaver' || fighter.name.toLowerCase().includes('bloodweaver') || (fighter.equipment.weapon?.id && fighter.equipment.weapon.id.includes('blood'));
+
+  const silhouetteColor = fighter.isShadowForm ? '#090814' : (isBloodweaver ? '#18070b' : (isNinja ? '#09090d' : '#14141d'));
+  const trimColor = isBloodweaver ? '#ef4444' : (isNinja ? '#ef4444' : fighter.equipment.armor.colorScheme.glow);
+  const eyeColor = fighter.isShadowForm ? '#a855f7' : (isBloodweaver ? '#ff2b47' : (isNinja ? '#38bdf8' : '#38bdf8'));
 
   ctx.save();
   ctx.translate(rootX, rootY);
   ctx.scale(dir, 1);
+
+  // --- BLOODWEAVER SANGUINE BLOOD ORBS AURA ---
+  if (isBloodweaver) {
+    for (let i = 0; i < 3; i++) {
+      const orbAngle = time * 3.8 + (i * Math.PI * 2) / 3;
+      const orbDistX = Math.cos(orbAngle) * 34;
+      const orbDistY = Math.sin(orbAngle) * 16 - 28;
+      ctx.save();
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(orbDistX, orbDistY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fecdd3';
+      ctx.beginPath();
+      ctx.arc(orbDistX - 1.2, orbDistY - 1.2, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
 
   // --- LEGS (Back & Front) ---
   // Left Leg (Back)
   drawLimb(ctx, 4, -5, pose.leftThigh.angle, 34, pose.leftShin.angle, 34, silhouetteColor, 9, 7);
   // Right Leg (Front)
   drawLimb(ctx, -4, -5, pose.rightThigh.angle, 34, pose.rightShin.angle, 34, silhouetteColor, 10, 8);
+
+  // Ninja Shin Wraps
+  if (isNinja) {
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(-7, 24);
+    ctx.lineTo(3, 14);
+    ctx.moveTo(-7, 34);
+    ctx.lineTo(3, 24);
+    ctx.stroke();
+  }
 
   // --- TORSO ---
   ctx.save();
@@ -563,7 +599,7 @@ export function drawFighter(
   ctx.ellipse(0, -10, 16, 9, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Armor Cuirass
+  // Armor Cuirass / Robes
   ctx.fillStyle = silhouetteColor;
   ctx.beginPath();
   ctx.moveTo(-14, -10);
@@ -577,9 +613,25 @@ export function drawFighter(
   ctx.strokeStyle = trimColor;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.moveTo(-8, -40);
-  ctx.lineTo(0, -20);
-  ctx.lineTo(8, -40);
+  if (isBloodweaver) {
+    // Bloodweaver Sanguine Runes
+    ctx.moveTo(-10, -42);
+    ctx.lineTo(0, -18);
+    ctx.lineTo(10, -42);
+    ctx.moveTo(-6, -28);
+    ctx.lineTo(6, -28);
+  } else if (isNinja) {
+    // Ninja Shinobi Clan Emblem
+    ctx.moveTo(-8, -38);
+    ctx.lineTo(0, -22);
+    ctx.lineTo(8, -38);
+    ctx.moveTo(0, -38);
+    ctx.lineTo(0, -22);
+  } else {
+    ctx.moveTo(-8, -40);
+    ctx.lineTo(0, -20);
+    ctx.lineTo(8, -40);
+  }
   ctx.stroke();
 
   // --- HEAD & HELMET ---
@@ -593,16 +645,66 @@ export function drawFighter(
   ctx.arc(2, -12, 14, 0, Math.PI * 2);
   ctx.fill();
 
-  // Helmet Visor Trim
-  ctx.fillStyle = fighter.equipment.helm.colorScheme.primary;
-  ctx.beginPath();
-  ctx.arc(2, -14, 15, -Math.PI * 0.7, Math.PI * 0.2);
-  ctx.fill();
+  // Ninja Headband with Dynamic Fluttering Ribbons in the Wind
+  if (isNinja) {
+    // Shinobi Headband
+    ctx.fillStyle = '#27272a';
+    ctx.fillRect(-10, -17, 24, 7);
+    // Metal Forehead Plate
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(0, -16, 12, 5);
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, -16, 12, 5);
+    // Lower Ninja Face Mask
+    ctx.fillStyle = '#09090b';
+    ctx.beginPath();
+    ctx.arc(2, -8, 12, 0, Math.PI);
+    ctx.fill();
+
+    // Fluttering Scarlet Ninja Ribbons
+    ctx.save();
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3.2;
+    ctx.lineCap = 'round';
+    const wave1 = Math.sin(time * 9) * 8;
+    const wave2 = Math.cos(time * 8) * 7;
+    ctx.beginPath();
+    ctx.moveTo(-10, -14);
+    ctx.quadraticCurveTo(-22, -14 + wave1 * 0.5, -36, -18 + wave1);
+    ctx.stroke();
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(-9, -11);
+    ctx.quadraticCurveTo(-20, -10 + wave2 * 0.5, -32, -8 + wave2);
+    ctx.stroke();
+    ctx.restore();
+  } else if (isBloodweaver) {
+    // Bloodweaver Sanguine Diadem
+    ctx.fillStyle = '#450a0a';
+    ctx.beginPath();
+    ctx.arc(2, -16, 15, -Math.PI * 0.8, Math.PI * 0.1);
+    ctx.fill();
+    // Blood Gem on forehead
+    ctx.fillStyle = '#ef4444';
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(6, -17, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  } else {
+    // Helmet Visor Trim
+    ctx.fillStyle = fighter.equipment.helm.colorScheme.primary;
+    ctx.beginPath();
+    ctx.arc(2, -14, 15, -Math.PI * 0.7, Math.PI * 0.2);
+    ctx.fill();
+  }
 
   // Glowing Eyes
   ctx.fillStyle = eyeColor;
   ctx.shadowColor = eyeColor;
-  ctx.shadowBlur = 12;
+  ctx.shadowBlur = isBloodweaver ? 16 : 12;
   ctx.beginPath();
   ctx.ellipse(8, -13, 3.5, 2, 0.2, 0, Math.PI * 2);
   ctx.fill();
@@ -691,6 +793,11 @@ function getWeaponImage(url?: string): HTMLImageElement | null {
   if (!img) {
     img = new Image();
     img.src = url;
+    img.onerror = () => {
+      if (img && url.includes('/assets/weapons/items/')) {
+        img.src = url.replace('/assets/weapons/items/', '/assets/weapons/');
+      }
+    };
     weaponImageCache.set(url, img);
   }
   return img.complete && img.naturalWidth > 0 ? img : null;
@@ -780,19 +887,96 @@ function drawWeapon(
       break;
     }
     case 'kusarigama': {
-      // Sickle and chain
-      ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 2;
+      // Sanguine Bloodweaver Kusarigama or Standard Kusarigama
+      const isBloodWpn = weapon.id.includes('blood') || weapon.name.toLowerCase().includes('blood');
+      const chainColor = isBloodWpn ? '#ef4444' : '#94a3b8';
+      const bladeColor = isBloodWpn ? '#dc2626' : colors.primary;
+      const glowEdge = isBloodWpn ? '#f87171' : colors.glow;
+
+      // Handle (Tsuka)
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(-3, 0, 6, 22);
+
+      // Barbed chain links
+      ctx.strokeStyle = chainColor;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(20, -30, 45, -20);
+      ctx.quadraticCurveTo(24, -32, 50, -22);
       ctx.stroke();
-      // Curved blade
-      ctx.fillStyle = colors.glow;
+
+      // Sickle ferrule
+      ctx.fillStyle = isBloodWpn ? '#7f1d1d' : '#475569';
+      ctx.fillRect(45, -26, 8, 8);
+
+      // Curved scythe/sickle blade
+      ctx.fillStyle = bladeColor;
       ctx.beginPath();
-      ctx.arc(45, -20, 18, -Math.PI * 0.4, Math.PI * 0.5);
-      ctx.lineTo(45, -20);
+      ctx.arc(50, -22, 22, -Math.PI * 0.45, Math.PI * 0.45);
+      ctx.lineTo(50, -22);
       ctx.fill();
+
+      // Razor sharp outer glowing edge
+      ctx.strokeStyle = glowEdge;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(50, -22, 22, -Math.PI * 0.45, Math.PI * 0.45);
+      ctx.stroke();
+
+      // Dripping blood spark at sickle tip
+      if (isBloodWpn) {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(68, -12, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case 'dual_daggers': {
+      // Shinobi Twin Ninjato & Kunai
+      const isNinjaWpn = weapon.id.includes('ninja') || weapon.name.toLowerCase().includes('ninja');
+      const edgeGlow = isNinjaWpn ? '#ef4444' : (colors.glow || '#c084fc');
+
+      // 1. Primary Ninjato (Upright)
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(-2.5, 6, 5, 20); // Handle
+      ctx.fillStyle = edgeGlow;
+      ctx.fillRect(-6, 4, 12, 3); // Tsuba guard
+
+      // Blade
+      ctx.strokeStyle = edgeGlow;
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 4);
+      ctx.lineTo(0, -60);
+      ctx.stroke();
+
+      // Blade core
+      ctx.strokeStyle = '#18181b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 4);
+      ctx.lineTo(0, -58);
+      ctx.stroke();
+
+      // 2. Offhand Kunai (Reverse angled)
+      ctx.save();
+      ctx.translate(-14, 12);
+      ctx.rotate(Math.PI * 0.7);
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(-2, 0, 4, 12);
+      ctx.strokeStyle = edgeGlow;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-5, -20);
+      ctx.lineTo(0, -28);
+      ctx.lineTo(5, -20);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = '#18181b';
+      ctx.fill();
+      ctx.restore();
       break;
     }
     case 'warhammer': {

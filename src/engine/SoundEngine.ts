@@ -1,6 +1,6 @@
 export class SoundEngine {
   private ctx: AudioContext | null = null;
-  private muted: boolean = false;
+  private muted: boolean = true; // Always muted on game load
   private volume: number = 0.35;
   private audioBufferCache: Map<string, AudioBuffer> = new Map();
   private pendingLoads: Map<string, Promise<AudioBuffer | null>> = new Map();
@@ -8,7 +8,8 @@ export class SoundEngine {
   private musicPlaying: boolean = false;
 
   constructor() {
-    // Initialized lazily on first user interaction
+    // Sound is strictly muted on game load by default
+    this.muted = true;
   }
 
   private initCtx() {
@@ -29,6 +30,13 @@ export class SoundEngine {
       this.bgMusicAudio.muted = this.muted;
     }
     return this.muted;
+  }
+
+  public setMuted(val: boolean): void {
+    this.muted = val;
+    if (this.bgMusicAudio) {
+      this.bgMusicAudio.muted = this.muted;
+    }
   }
 
   public isMuted(): boolean {

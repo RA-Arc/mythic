@@ -467,6 +467,20 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                   alt={sword.name}
                   style={{ imageRendering: 'pixelated' }}
                   className="relative z-10 w-24 h-24 object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)]"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    const stage = target.getAttribute('data-fallback') || '0';
+                    if (stage === '0') {
+                      target.setAttribute('data-fallback', '1');
+                      target.src = `/assets/weapons/sword_${sword.swordIndex}.png`;
+                    } else if (stage === '1') {
+                      target.setAttribute('data-fallback', '2');
+                      target.src = `/assets/weapons/sword_${sword.swordIndex}_32.png`;
+                    } else if (stage === '2') {
+                      target.setAttribute('data-fallback', '3');
+                      target.src = `/assets/weapons/items/sword_${sword.swordIndex}_32.png`;
+                    }
+                  }}
                 />
 
                 {/* Inspect eye icon on hover */}
@@ -588,6 +602,20 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                   alt={inspectingSword.name}
                   style={{ imageRendering: 'pixelated' }}
                   className="relative z-10 w-40 h-40 object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.9)] animate-floating"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    const stage = target.getAttribute('data-fallback') || '0';
+                    if (stage === '0') {
+                      target.setAttribute('data-fallback', '1');
+                      target.src = `/assets/weapons/sword_${inspectingSword.swordIndex}.png`;
+                    } else if (stage === '1') {
+                      target.setAttribute('data-fallback', '2');
+                      target.src = `/assets/weapons/sword_${inspectingSword.swordIndex}_32.png`;
+                    } else if (stage === '2') {
+                      target.setAttribute('data-fallback', '3');
+                      target.src = `/assets/weapons/items/sword_${inspectingSword.swordIndex}_32.png`;
+                    }
+                  }}
                 />
               </div>
 
