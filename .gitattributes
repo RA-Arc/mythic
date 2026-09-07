@@ -1,0 +1,2 @@
+# Force Git to handle text normalization automatically without printing warnings
+* text=auto
