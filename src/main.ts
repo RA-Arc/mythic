@@ -14,6 +14,7 @@ import { soundEngine } from "./engine/SoundEngine";
 import { EraId } from "./engine/types";
 import { ParallaxEngine } from "./engine/ParallaxEngine";
 import { getSafeTextures } from "./engine/safeTexture";
+import { ALL_80_BACKGROUND_PATHS } from "./engine/data/battlegrounds";
 
 async function initGame() {
   const app = new Application();
@@ -134,21 +135,49 @@ async function initGame() {
       "assets/sprites/ui/ui-toolbar.png"
     );
 
-    // 6. Royalty-Free Separated Era Backgrounds (Clean CraftPix RPG Battlegrounds & Caves)
-    assetList.push(
-      "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_1.jpg",
-      "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_1.jpg",
-      "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_2.jpg",
-      "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_1.jpg",
-      "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_1.jpg",
-      "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_1.jpg",
-      "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_1.jpg",
-      "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_1.jpg",
-      "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_1.jpg",
-      "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_3.jpg"
-    );
+    // 6. All 80 Royalty-Free Era Battleground Backgrounds
+    for (const bgPath of ALL_80_BACKGROUND_PATHS) {
+      if (!assetList.includes(bgPath)) {
+        assetList.push(bgPath);
+      }
+    }
 
     // 7. Depths Monsters & Companions
+    assetList.push(
+      "assets/sprites/objects/forest_tree_1.png",
+      "assets/sprites/objects/forest_bush_1.png",
+      "assets/sprites/objects/forest_ruins_1.png",
+      "assets/sprites/objects/dawn_rock_pillar.png",
+      "assets/sprites/objects/dawn_sky_obelisk.png",
+      "assets/sprites/objects/dawn_crystal_cluster.png",
+      "assets/sprites/objects/fire_stalagmites.png",
+      "assets/sprites/objects/fire_dragon_skull.png",
+      "assets/sprites/objects/fire_obsidian_rock.png",
+      "assets/sprites/objects/stone_bone_totem.png",
+      "assets/sprites/objects/stone_spiked_barricade.png",
+      "assets/sprites/objects/stone_mossy_boulder.png",
+      "assets/sprites/objects/bronze_sandstone_pillar.png",
+      "assets/sprites/objects/bronze_palm_tree.png",
+      "assets/sprites/objects/bronze_anubis_statue.png",
+      "assets/sprites/objects/iron_castle_wall.png",
+      "assets/sprites/objects/iron_war_tent.png",
+      "assets/sprites/objects/iron_siege_ballista.png",
+      "assets/sprites/objects/faith_gothic_tomb.png",
+      "assets/sprites/objects/faith_iron_fence.png",
+      "assets/sprites/objects/faith_dead_tree.png",
+      "assets/sprites/objects/discovery_shipwreck.png",
+      "assets/sprites/objects/discovery_barrels.png",
+      "assets/sprites/objects/discovery_anchor.png",
+      "assets/sprites/objects/steam_smokestack.png",
+      "assets/sprites/objects/steam_gear_mechanism.png",
+      "assets/sprites/objects/steam_lamp_post.png",
+      "assets/sprites/objects/atom_fusion_core.png",
+      "assets/sprites/objects/atom_energy_conduit.png",
+      "assets/sprites/objects/atom_boundary_beacon.png",
+      "assets/sprites/objects/stars_quantum_monolith.png",
+      "assets/sprites/objects/stars_energy_node.png",
+      "assets/sprites/objects/stars_warp_pylon.png"
+    );
     const depthsSpriteNames = [
       "sprGoblin1", "sprGoblin2", "sprGoblin3",
       "sprBatilisk1", "sprBatilisk2", "sprBatilisk3",
@@ -168,6 +197,8 @@ async function initGame() {
         assetList.push(`assets/depths/sprites/${s}/frame_${i}.png`);
       }
     }
+    
+    // assetList.push('assets/depths/sprites/sprOrcArcher/spritesheet.json');
 
     // Try fetching manifest for any additional frames
     try {
@@ -231,7 +262,7 @@ async function initGame() {
   hero.cosmicAlignment = gameState.cosmicAlignment;
   hero.activeSpecialization = gameState.specializations[gameState.currentEra] || "Primordial Shaman";
   hero.sprite.x = 260;
-  hero.sprite.y = 420;
+  hero.sprite.y = 498;
   tacticalCombatContainer.addChild(hero.sprite);
 
   // Expose global references for hybrid react synchronization
@@ -389,7 +420,7 @@ async function initGame() {
   const parallaxEngine = new ParallaxEngine();
   (window as any).parallaxEngine = parallaxEngine;
   backgroundLayer.addChild(parallaxEngine.rootContainer);
-  parallaxEngine.setEra(gameState.currentEra);
+  parallaxEngine.setEra(gameState.currentEra, Math.floor(gameState.distanceMeters / 100));
 
   let currentRenderedEra: EraId | null = gameState.currentEra;
 
@@ -528,7 +559,7 @@ async function initGame() {
     // Check if background needs to re-render after era switch
     if (currentRenderedEra !== gameState.currentEra) {
       currentRenderedEra = gameState.currentEra;
-      parallaxEngine.setEra(gameState.currentEra);
+      parallaxEngine.setEra(gameState.currentEra, Math.floor(gameState.distanceMeters / 100));
       eraWatermark.text = `${ERA_DATA[gameState.currentEra].name.toUpperCase()} — ${ERA_DATA[gameState.currentEra].subtitle}`;
       particles.addFloatingText(`ENTERED ${ERA_DATA[gameState.currentEra].name}!`, 640, 200, "#ffd700", 28, true);
     }
@@ -581,7 +612,7 @@ async function initGame() {
     livingEnemies.forEach((enemy, idx) => {
       // Pack closely: frontline starts at hero.sprite.x + 72, followed closely by subsequent mobs
       const stopX = hero.sprite.x + 72 + (idx * 22);
-      const targetY = 435 + ((idx % 2 === 0 ? 1 : -1) * ((idx * 6) % 24));
+      const targetY = 513 + ((idx % 2 === 0 ? 1 : -1) * ((idx * 6) % 24));
 
       if (enemy.sprite.x > stopX) {
         enemy.sprite.x -= 1.65 * delta;
@@ -637,21 +668,21 @@ async function initGame() {
       if (hero.sprite.x < MIDPOINT_X) {
         hero.setState("run");
         vx = 1.05;
-        vy = (435 - hero.sprite.y) * 0.05;
+        vy = (513 - hero.sprite.y) * 0.05;
         hero.sprite.x = Math.min(MIDPOINT_X, hero.sprite.x + vx * delta);
         hero.sprite.y += vy * delta;
       } else {
         // At midpoint: hold the line! He stays at the midpoint while marching against oncoming hordes
         hero.sprite.x = MIDPOINT_X;
         hero.setState("run");
-        vy = (435 - hero.sprite.y) * 0.05;
+        vy = (513 - hero.sprite.y) * 0.05;
         hero.sprite.y += vy * delta;
       }
     }
 
     // Strict boundary enforcement: NEVER go past midpoint (640), but allow being pushed back to the left (140)
     hero.sprite.x = Math.max(MIN_HERO_X, Math.min(MIDPOINT_X, hero.sprite.x));
-    hero.sprite.y = Math.max(410, Math.min(480, hero.sprite.y));
+    hero.sprite.y = Math.max(488, Math.min(558, hero.sprite.y));
 
     // Ground shadows for realistic stage grounding
     shadowGfx.fill({ color: 0x000000, alpha: 0.35 }).ellipse(hero.sprite.x, hero.sprite.y + 36, 26, 8);
@@ -957,7 +988,8 @@ async function initGame() {
     // Update 7 independent parallax layers and real-time ground reflection
     const isWalking = hero.state === "run" || Math.abs(vx) > 0.1;
     const walkSpeed = isWalking ? 0.85 : 0.2;
-    parallaxEngine.update(delta, isWalking, walkSpeed, heroFacing, hero, combatEngine.activeEnemy, activeMiniNinjas);
+
+    parallaxEngine.update(delta, isWalking, walkSpeed, heroFacing, hero, combatEngine.activeEnemy, activeMiniNinjas, gameState.distanceMeters);
 
     // Sync HTML Sidebars and Header
     syncExternalLayout();

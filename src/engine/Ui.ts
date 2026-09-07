@@ -130,29 +130,30 @@ export function createMythicUI(
         </div>
         <div style="height: 18px; width: 1px; background: #30363d;"></div>
         <!-- Rogue With Dead Distance & Soul Diamonds -->
-        <div style="font-size: 11px; color: #ffd700;" title="Rogue Marching Distance">
-          <span>🚩 <b>${Math.floor(hero.distanceMeters)}m</b></span>
+        <div style="font-size: 11px; color: #ffd700;" title="Stage Distance & Boss Progress">
+          <span>🚩 <b>${Math.floor(gameState.distanceMeters % 100 === 0 && gameState.distanceMeters > 0 ? 100 : gameState.distanceMeters % 100)}m / 100m</b> <span style="color:#8b949e; font-size:10px;">(Stage ${Math.min(10, Math.floor(gameState.distanceMeters / 100) + (gameState.distanceMeters % 100 === 0 && gameState.distanceMeters > 0 ? 0 : 1))}/10 &bull; ${Math.floor(gameState.distanceMeters)}m)</span></span>
         </div>
         <div style="font-size: 11px; color: #d2a8ff;" title="Soul Diamonds for Relic & Troop Meta-Upgrades">
           <span>💎 <b>${hero.soulDiamonds}</b> Soul Gems</span>
         </div>
         <div style="height: 18px; width: 1px; background: #30363d;"></div>
-        <!-- Underworld Debt Pill -->
-        <div id="quick-debt-pill" style="
+        <!-- Quick Summon Boss Button -->
+        <button id="quick-summon-boss-btn" style="
           font-size: 11px;
-          color: ${gameState.underworldDebt.currentDebt > 0 ? '#ff7b72' : '#7ee787'};
-          background: ${gameState.underworldDebt.currentDebt > 0 ? 'rgba(255, 123, 114, 0.12)' : 'rgba(46, 160, 67, 0.15)'};
-          border: 1px solid ${gameState.underworldDebt.currentDebt > 0 ? '#ff7b72' : '#2ea043'};
-          padding: 2px 7px;
+          color: #fff;
+          background: ${combatEngine.bossMode ? '#b62324' : '#238636'};
+          border: 1px solid #30363d;
+          padding: 3px 8px;
           border-radius: 4px;
           cursor: pointer;
+          font-weight: bold;
           display: flex;
           align-items: center;
           gap: 4px;
-        " title="Debts in the Depths — Manage Underworld Debt & Summoned Minions">
-          <span>🪙</span>
-          <span><b>${gameState.underworldDebt.currentDebt > 0 ? `${gameState.underworldDebt.currentDebt.toLocaleString()} Debt` : 'DEBT FREE!'}</b></span>
-        </div>
+        " title="Toggle Era Boss Encounter">
+          <span>💀</span>
+          <span><b>${combatEngine.bossMode ? 'BOSS BATTLE ACTIVE' : 'SUMMON BOSS'}</b></span>
+        </button>
       </div>
 
       <!-- Chi Force Gauge & Single Master Game Menu Button -->
@@ -257,10 +258,16 @@ export function createMythicUI(
       }
     });
 
-    topBar.querySelector("#quick-debt-pill")?.addEventListener("click", () => {
-      activeTab = "debts";
-      modalWindow.style.display = "flex";
-      renderModalContent();
+    topBar.querySelector("#quick-summon-boss-btn")?.addEventListener("click", () => {
+      combatEngine.bossMode = !combatEngine.bossMode;
+      if (combatEngine.bossMode && combatEngine.activeEnemy && !combatEngine.activeEnemy.isBoss) {
+        combatEngine.activeEnemy = null;
+      }
+      soundEngine.playBossRoar();
+      renderTopBar();
+      if (modalWindow.style.display === "flex" && activeTab === "combat") {
+        renderModalContent();
+      }
     });
   }
 
@@ -360,13 +367,7 @@ export function createMythicUI(
               </div>
 
               <!-- Card: Summon Boss Mode Toggle -->
-              <div class="hub-action-card" id="hub-toggle-boss-btn" style="background: ${combatEngine.bossMode ? 'rgba(218,54,51,0.25)' : '#161b22'}; border: 1px solid ${combatEngine.bossMode ? '#f85149' : '#30363d'}; border-radius: 8px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="font-weight: 800; color: #f85149; font-size: 13px;">💀 ERA BOSS AWAKENING</span>
-                  <span style="font-size: 10px; background: ${combatEngine.bossMode ? '#da3633' : '#238636'}; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">
-                    ${combatEngine.bossMode ? 'ACTIVE' : 'IDLE'}
-                  </span>
-                </div>
+              
                 <div style="font-size: 11px; color: #8b949e; line-height: 1.4;">Toggle instantaneous awakening of the historical Era Boss for supreme rewards.</div>
               </div>
             </div>
@@ -625,7 +626,20 @@ export function createMythicUI(
 
             <!-- Live Combat Metrics -->
             <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 10px; font-size: 11px; line-height: 1.6;">
-              <div style="display:flex; justify-content:space-between;"><span>Max Health:</span> <b style="color:#7ee787;">${hero.getEffectiveMaxHp(traitBonus.hpBonus || 0, memHpMult).toLocaleString()} HP</b></div>
+              <div style="font-size: 14px; font-weight: bold; color: #ffd700;">${curEra.bossName}</div>
+              <div style="color: #8b949e; font-style: italic;">"${curEra.bossTitle}"</div>
+              <div style="margin-top: 6px;"><b>Boss Max Health:</b> <span style="color:#7ee787;">${curEra.bossHp.toLocaleString()} HP</span></div>
+              <div><b>Base Damage:</b> <span style="color:#ff7b72;">${curEra.bossDamage} DMG</span></div>
+              <div><b>Mythic Affinity:</b> <span style="color:#d2a8ff;">${curEra.bossAffinity}</span></div>
+            </div>
+            
+            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 10px; text-align: center;">
+              <div style="font-size: 11px; color: #8b949e; text-transform: uppercase;">Era Exploration Progress</div>
+              <div style="font-size: 16px; font-weight: bold; color: #58a6ff;">Stage ${Math.floor((gameState.distanceMeters||0) / 100) + 1}/10 (${Math.floor((gameState.distanceMeters||0) % 100)}m / 100m)</div>
+              <div style="width: 100%; background: #21262d; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                <div style="width: ${(gameState.distanceMeters||0) % 100}%; background: #58a6ff; height: 100%;"></div>
+              </div>
+            </div>
               <div style="display:flex; justify-content:space-between;"><span>Attack Power:</span> <b style="color:#ff7b72;">${hero.getEffectiveDamage(traitBonus.damageBonus || 0, memDmgMult).toLocaleString()} DMG</b></div>
               <div style="display:flex; justify-content:space-between;"><span>Defense / Armor:</span> <b style="color:#79c0ff;">${hero.getEffectiveDefense(traitBonus.defenseBonus || 0)} Armor</b></div>
               <div style="display:flex; justify-content:space-between;"><span>Critical Strike:</span> <b style="color:#ffd700;">${hero.getCritRate(traitBonus.critRateBonus || 0)}% (x${hero.getCritDamageMultiplier(traitBonus.critDmgBonus || 0).toFixed(2)})</b></div>
@@ -641,6 +655,34 @@ export function createMythicUI(
               </div>
               <div style="width: 100%; height: 8px; background: #0d1117; border-radius: 4px; overflow: hidden; border: 1px solid #30363d;">
                 <div style="width: ${Math.min(100, (hero.xp / hero.maxXp) * 100)}%; height: 100%; background: #238636;"></div>
+              </div>
+            </div>
+
+            <!-- Stat Point Allocation Panel -->
+            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; font-weight: bold; color: #ffd700;">⭐ STAT POINTS: <span style="color:#7ee787;">${hero.statPoints}</span></span>
+                <span style="font-size: 10px; color: #8b949e;">Distribute on Level Up</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px;">
+                ${[
+                  { key: 'agility', name: 'Agility', desc: 'Attack Haste', val: hero.stats.agility },
+                  { key: 'dexterity', name: 'Dexterity', desc: 'Crit & Precision', val: hero.stats.dexterity },
+                  { key: 'wisdom', name: 'Wisdom', desc: 'Chi & Energy', val: hero.stats.wisdom },
+                  { key: 'charisma', name: 'Charisma', desc: 'Troops & Drops', val: hero.stats.charisma },
+                  { key: 'stamina', name: 'Stamina', desc: 'Defense / Armor', val: hero.stats.stamina },
+                  { key: 'vitality', name: 'Vitality', desc: 'Max HP', val: hero.stats.vitality },
+                  { key: 'cosmicReson', name: 'Cosmic Res.', desc: 'Era Energy Yield', val: hero.stats.cosmicReson },
+                  { key: 'chronosFlux', name: 'Chronos Flux', desc: 'March Speed', val: hero.stats.chronosFlux }
+                ].map(st => `
+                  <div style="background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 6px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="font-weight: bold; color: #58a6ff;">${st.name}: ${st.val}</div>
+                      <div style="font-size: 9px; color: #8b949e;">${st.desc}</div>
+                    </div>
+                    <button class="alloc-stat-btn" data-stat="${st.key}" style="background: ${hero.statPoints > 0 ? '#238636' : '#21262d'}; border: 1px solid #30363d; color: #fff; width: 22px; height: 22px; font-weight: bold; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;" ${hero.statPoints > 0 ? '' : 'disabled'}>+</button>
+                  </div>
+                `).join("")}
               </div>
             </div>
           </div>
@@ -1368,13 +1410,13 @@ export function createMythicUI(
         .join("");
 
       bodyHtml = `
-        <div style="display: grid; grid-template-columns: 1fr 380px; gap: 16px; height: 100%; padding: 16px;">
+        <div style="display: grid; grid-template-columns: 1fr 340px 340px; gap: 16px; height: 100%; padding: 16px;">
           <!-- Left: Ability Configuration -->
           <div style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 10px;">
               <div>
                 <span style="font-weight: bold; color: #ffd700;">AUTO-CAST ABILITIES:</span>
-                <span style="font-size: 11px; color: #8b949e; margin-left: 6px;">Hero automatically expends Era-Energy to trigger equipped abilities.</span>
+                <span style="font-size: 11px; color: #8b949e; margin-left: 6px;">Hero automatically expends Era-Energy.</span>
               </div>
               <button id="toggle-autocast" style="background: ${combatEngine.autoCastAbilities ? '#238636' : '#21262d'}; border: 1px solid #30363d; color: #fff; padding: 4px 12px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer;">
                 ${combatEngine.autoCastAbilities ? 'ENABLED' : 'DISABLED'}
@@ -1383,6 +1425,43 @@ export function createMythicUI(
             <div style="font-size: 12px; font-weight: bold; color: #8b949e; margin-top: 4px;">MYTHIC ERA ABILITIES:</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
               ${abilityCardsHtml}
+            </div>
+          </div>
+
+          <!-- Middle: Manual Practice & Skill Mastery -->
+          <div style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto;">
+            <div style="font-size: 14px; font-weight: bold; color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 6px;">
+              ⚔️ SKILL MASTERY & TRAINING
+            </div>
+            <button id="manual-practice-swing-btn" style="background: linear-gradient(135deg, #1f6feb, #238636); border: 1px solid #58a6ff; color: #fff; padding: 12px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+              🎯 PRACTICE SWING / HEAVY THRUST
+            </button>
+            <div style="font-size: 10px; color: #8b949e; text-align: center;">
+              Click to swing actively. Every 10 uses upgrades skill level (+12% DMG boost)!
+            </div>
+            <div style="font-size: 11px; font-weight: bold; color: #ffd700;">EQUIPPED SKILLS:</div>
+            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; overflow-y: auto;">
+              ${hero.equippedAbilities.map(aid => {
+                const ab = (ALL_ABILITIES as any)[aid] || { name: aid, icon: '⚔️' };
+                const usage = hero.skillUsage[aid] || 0;
+                const lvl = hero.skillLevels[aid] || 1;
+                const req = lvl * 10;
+                const pct = Math.min(100, (usage / req) * 100);
+                return `
+                <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 8px; display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 18px;">${ab.icon}</span>
+                    <div>
+                      <div style="font-weight: bold; color: #58a6ff; font-size: 11px;">${ab.name} <span style="color:#ffd700;">(Lv.${lvl})</span></div>
+                      <div style="font-size: 9px; color: #8b949e;">Usage: ${usage} / ${req}</div>
+                    </div>
+                  </div>
+                  <div style="width: 70px; height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; border: 1px solid #30363d;">
+                    <div style="width: ${pct}%; height: 100%; background: #58a6ff;"></div>
+                  </div>
+                </div>
+                `;
+              }).join("")}
             </div>
           </div>
 
@@ -1398,11 +1477,9 @@ export function createMythicUI(
               <div><b>Base Damage:</b> <span style="color:#ff7b72;">${curEra.bossDamage} DMG</span></div>
               <div><b>Mythic Affinity:</b> <span style="color:#d2a8ff;">${curEra.bossAffinity}</span></div>
             </div>
-            <button id="modal-boss-toggle" style="background: ${combatEngine.bossMode ? '#b62324' : '#238636'}; border: 1px solid #30363d; color: #fff; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer;">
-              ${combatEngine.bossMode ? '⚔️ CURRENTLY IN BOSS BATTLE' : '💀 SUMMON ERA BOSS NOW'}
-            </button>
+            <div id="era-distance-tracker"></div>
             <div style="font-size: 11px; color: #8b949e; text-align: center;">
-              Defeating the Era Boss grants guaranteed <b>Titan Cores</b>, <b>Mythic Shards</b>, and rare gear drops!
+              Defeating the Era Boss grants guaranteed <b>Titan Cores</b> and rare gear drops!
             </div>
           </div>
         </div>
@@ -1891,9 +1968,14 @@ export function createMythicUI(
             <div style="display: flex; gap: 6px; overflow-x: auto; flex: 1;">
               ${categoryButtons}
             </div>
-            <button id="surprise-bg-btn" style="background: #8957e5; border: 1px solid #a371f7; color: #fff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
-              <span>🎲</span> <span>SURPRISE BATTLEFIELD</span>
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <button id="auto-cycle-bg-btn" style="background: ${currentCustomBattlefield ? '#21262d' : '#238636'}; border: 1px solid ${currentCustomBattlefield ? '#30363d' : '#2ea043'}; color: #fff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+                <span>🔄</span> <span>${currentCustomBattlefield ? 'ENABLE 80-BG AUTO-CYCLE' : '80-BG AUTO-CYCLE ACTIVE'}</span>
+              </button>
+              <button id="surprise-bg-btn" style="background: #8957e5; border: 1px solid #a371f7; color: #fff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+                <span>🎲</span> <span>SURPRISE BATTLEFIELD</span>
+              </button>
+            </div>
           </div>
           <div style="flex: 1; overflow-y: auto; padding: 14px 16px;">
             ${packsHtml}
@@ -2120,6 +2202,20 @@ export function createMythicUI(
           renderModalContent();
         });
       });
+
+      modalWindow.querySelectorAll(".alloc-stat-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const statKey = (btn as HTMLElement).getAttribute("data-stat") as keyof Hero['stats'];
+          if (statKey) {
+            const success = hero.allocateStat(statKey);
+            if (success) {
+              soundEngine.playCraft();
+              renderModalContent();
+              renderTopBar();
+            }
+          }
+        });
+      });
     }
 
     // 2. Chi & Arc Angel Event Listeners
@@ -2341,11 +2437,18 @@ export function createMythicUI(
         renderModalContent();
       });
 
-      modalWindow.querySelector("#modal-boss-toggle")?.addEventListener("click", () => {
-        combatEngine.bossMode = !combatEngine.bossMode;
-        if (combatEngine.bossMode && combatEngine.activeEnemy && !combatEngine.activeEnemy.isBoss) {
-          combatEngine.activeEnemy = null;
+      modalWindow.querySelector("#manual-practice-swing-btn")?.addEventListener("click", () => {
+        const equippedAbIds = hero.equippedAbilities;
+        const randomId = equippedAbIds[Math.floor(Math.random() * equippedAbIds.length)] || "auto_attack";
+        const skillProg = hero.recordSkillUsage(randomId);
+        soundEngine.playDepthsSound("sndArrow");
+        if (skillProg.leveledUp) {
+          soundEngine.playLevelUp();
+          logger.printLine(`⭐ Skill Mastery Leveled Up! ${randomId} is now Lv.${skillProg.newLevel}!`, "#ffd700");
+        } else {
+          logger.printLine(`Trained skill '${randomId}' (Usage count: ${hero.skillUsage[randomId] || 0}).`, "#58a6ff");
         }
+        hero.gainChi(6);
         renderModalContent();
         renderTopBar();
       });
@@ -2517,13 +2620,24 @@ export function createMythicUI(
             currentCustomBattlefield = path;
             const engine = (window as any).parallaxEngine;
             if (engine?.setCustomBackground) {
-              engine.setCustomBackground(path);
+              engine.setCustomBackground(path, true);
             }
             logger.printLine(`*** BATTLEFIELD DEPLOYED: ${title || path} ***`, "#3fb950");
             soundEngine.playBuy();
             renderModalContent();
           }
         });
+      });
+
+      modalWindow.querySelector("#auto-cycle-bg-btn")?.addEventListener("click", () => {
+        currentCustomBattlefield = "";
+        const engine = (window as any).parallaxEngine;
+        if (engine?.unlockCustomBackground) {
+          engine.unlockCustomBackground(gameState.distanceMeters);
+        }
+        logger.printLine(`*** AUTO-CYCLE ACTIVATED: Backgrounds now switch automatically every 100m! ***`, "#3fb950");
+        soundEngine.playEraAdvance();
+        renderModalContent();
       });
 
       modalWindow.querySelector("#surprise-bg-btn")?.addEventListener("click", () => {
@@ -2534,7 +2648,7 @@ export function createMythicUI(
           currentCustomBattlefield = randomPick.path;
           const engine = (window as any).parallaxEngine;
           if (engine?.setCustomBackground) {
-            engine.setCustomBackground(randomPick.path);
+            engine.setCustomBackground(randomPick.path, true);
           }
           logger.printLine(`🎲 SURPRISE BATTLEFIELD DEPLOYED: ${randomPick.title}`, "#a371f7");
           soundEngine.playEraAdvance();

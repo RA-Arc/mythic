@@ -50,6 +50,7 @@ const STORAGE_KEY = "MYTHIC_RPG_SAVE_V2";
 export class GameState {
   currentEra: EraId = "dawn";
   unlockedEras: EraId[] = ["dawn"];
+  distanceMeters: number = 0;
   cosmicAlignment: CosmicForce = "Echoes";
 
   currencies = {
@@ -321,6 +322,7 @@ export class GameState {
     this.currencies.titanCores -= cost.titanCores;
 
     this.currentEra = targetEra;
+    this.distanceMeters = 0;
     if (!this.unlockedEras.includes(targetEra)) {
       this.unlockedEras.push(targetEra);
       if (!this.generators[targetEra] || this.generators[targetEra].level === 0) {

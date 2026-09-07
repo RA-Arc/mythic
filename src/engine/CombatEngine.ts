@@ -5,7 +5,8 @@ import { ParticleSystem } from "./ParticleSystem";
 import { ERA_DATA } from "./data/eras";
 import { ALL_ABILITIES } from "./data/skills";
 import { MASTER_GEAR_CATALOG, COLOR_MAP } from "./data/gear";
-import { RPGItem, AbilityDefinition } from "./types";
+import { RPGItem, AbilityDefinition, EraId } from "./types";
+import { soundEngine } from "./SoundEngine";
 
 export class CombatEngine {
   hero: Hero;
@@ -71,6 +72,16 @@ export class CombatEngine {
     const shouldSpawnBoss = this.bossMode && !this.enemies.some(e => e.isBoss);
 
     const newEnemy = MythicEnemy.spawnForEra(eraId, shouldSpawnBoss, this.hero.level);
+    
+    // Scale up the final 1000m boss!
+    const currentSubStage = Math.floor(this.gameState.distanceMeters / 100);
+    if (shouldSpawnBoss && (currentSubStage >= 10 || this.gameState.distanceMeters >= 1000)) {
+       newEnemy.baseScale *= 1.8;
+       newEnemy.maxHp *= 3;
+       newEnemy.hp = newEnemy.maxHp;
+       newEnemy.baseDmg *= 1.5;
+       newEnemy.name = "TITAN " + newEnemy.name;
+    }
 
     if (shouldSpawnBoss) {
       this.particles.addFloatingText("⚡ ERA BOSS AWAKENS! ⚡", 640, 180, "#ff3333", 28, true);
@@ -83,7 +94,7 @@ export class CombatEngine {
 
     // Creature spawns at right edge of the screen and marches towards the hero
     newEnemy.sprite.x = 1150 + Math.random() * 120;
-    newEnemy.sprite.y = newEnemy.isFlying ? 360 : 425 + (Math.random() * 24 - 12);
+    newEnemy.sprite.y = newEnemy.isFlying ? 438 : 503 + (Math.random() * 24 - 12);
     newEnemy.setState("run");
 
     this.enemies.push(newEnemy);
@@ -100,9 +111,40 @@ export class CombatEngine {
     this.hero.updateFormTimer(delta / 60);
 
     // Distance progression (marching forward through the historical era)
-    if (this.hero.hp > 0) {
+    const isFightingBoss = this.bossMode || this.enemies.some(e => e.isBoss);
+    if (this.hero.hp > 0 && !isFightingBoss) {
       const marchSpeedRelic = 1 + (this.hero.getRelicBonus("marchSpeedPercent") / 100);
-      this.hero.distanceMeters += (0.65 * marchSpeedRelic) * (delta / 60);
+      const chronosMult = 1 + (this.hero.stats.chronosFlux * 0.03);
+      const step = (1.6 * marchSpeedRelic * chronosMult) * (delta / 60);
+
+      const prevDist = this.gameState.distanceMeters;
+      const targetMilestone = (Math.floor(prevDist / 100) + 1) * 100;
+
+      if (prevDist < targetMilestone && prevDist + step >= targetMilestone && targetMilestone <= 1000) {
+        // Exactly reached the 100m milestone! Boss encounter!
+        this.gameState.distanceMeters = targetMilestone;
+        this.hero.distanceMeters = targetMilestone;
+        this.bossMode = true;
+        this.clearEnemies(); // Clear minions to immediately engage the boss!
+        const stageNum = Math.floor(targetMilestone / 100);
+        const isEraTitan = stageNum === 10;
+        this.particles.addFloatingText(
+          `⚡ ${isEraTitan ? "ERA TITAN BOSS" : `STAGE ${stageNum} BOSS`} (100m)! ⚡`,
+          640,
+          200,
+          "#ff3333",
+          30,
+          true
+        );
+        logger.printLine(
+          `*** ${isEraTitan ? "TITAN OF THE ERA" : `STAGE ${stageNum} BOSS`} EMERGES AT ${targetMilestone}m! ***`,
+          "#ff3333"
+        );
+      } else {
+        this.gameState.distanceMeters += step;
+        this.hero.distanceMeters = this.gameState.distanceMeters;
+      }
+
       if (this.hero.distanceMeters > this.hero.maxDistanceReached) {
         this.hero.maxDistanceReached = this.hero.distanceMeters;
         // Distance Milepost Checkpoints (every 250m grants Soul Diamonds & Relic Chest)
@@ -112,6 +154,8 @@ export class CombatEngine {
           logger.printLine(`*** Crossed ${Math.floor(this.hero.distanceMeters)}m milepost! Relic Chest opened (+3 Soul Diamonds)! ***`, "#ffd700");
         }
       }
+    } else {
+      this.hero.distanceMeters = this.gameState.distanceMeters;
     }
 
     // Decrement specific ability cooldowns
@@ -125,15 +169,18 @@ export class CombatEngine {
     if (this.hero.hp <= 0) {
       this.heroRespawnTimer -= delta;
       if (this.heroRespawnTimer <= 0) {
-        // Respawn at beginning meters: 1 meter!
-        this.hero.distanceMeters = 1;
+        // Respawn at beginning of current stage (e.g. 0m for stage 1, 100m for stage 2, etc.)
+        const currentStageStart = Math.max(0, Math.floor((this.gameState.distanceMeters - 0.01) / 100) * 100);
+        this.gameState.distanceMeters = currentStageStart;
+        this.hero.distanceMeters = currentStageStart;
+        this.bossMode = false;
         this.hero.hp = this.hero.getEffectiveMaxHp();
         this.hero.sprite.x = 260;
-        this.hero.sprite.y = 430;
+        this.hero.sprite.y = 508;
         this.hero.setState("run");
         this.clearEnemies();
-        logger.printLine("Reconstituted at the beginning (1 meter). Level up & equip gear to overcome the swarm!", "#7ee787");
-        this.particles.addFloatingText("RESPAWNED AT 1 METER", this.hero.sprite.x, this.hero.sprite.y - 60, "#38bdf8", 26, true);
+        logger.printLine(`Reconstituted at ${Math.floor(currentStageStart)}m. March forth and conquer!`, "#7ee787");
+        this.particles.addFloatingText(`RESPAWNED AT ${Math.floor(currentStageStart)}m`, this.hero.sprite.x, this.hero.sprite.y - 60, "#38bdf8", 26, true);
       }
       return;
     }
@@ -202,7 +249,17 @@ export class CombatEngine {
     const affinityMult = this.getAffinityMultiplier(this.hero.cosmicAlignment, target.affinity);
 
     let rawDmg = this.hero.getEffectiveDamage(traitBonus.damageBonus || 0, memoryDmgMult);
-    rawDmg = Math.floor(rawDmg * abilityToUse.damageMultiplier * affinityMult);
+    
+    // Skill usage & progression tracking
+    const skillProg = this.hero.recordSkillUsage(abilityToUse.id);
+    if (skillProg.leveledUp) {
+      this.particles.addFloatingText(`⭐ SKILL LEVEL UP! ${abilityToUse.name} Lv.${skillProg.newLevel}`, this.hero.sprite.x, this.hero.sprite.y - 75, "#ffd700", 22, true);
+      soundEngine.playLevelUp();
+    }
+    const skillLvl = this.hero.skillLevels[abilityToUse.id] || 1;
+    const skillLevelMult = 1 + (skillLvl - 1) * 0.12;
+
+    rawDmg = Math.floor(rawDmg * abilityToUse.damageMultiplier * affinityMult * skillLevelMult);
 
     // Roll for critical strike
     const critRate = this.hero.getCritRate(traitBonus.critRateBonus || 0, this.gameState.getMemoryFlatBonus("critRate"));
@@ -423,6 +480,43 @@ export class CombatEngine {
       this.gameState.currencies.titanCores += 1;
       logger.printLine(`*** OBTAINED 1 TITAN CORE! ***`, "#ffd700");
       this.particles.addFloatingText("+1 TITAN CORE!", 640, 240, "#ffd700", 26, true);
+      
+      const currentSubStage = Math.floor(this.gameState.distanceMeters / 100);
+      if (currentSubStage >= 10 || this.gameState.distanceMeters >= 1000) {
+        // Defeated 1000m Giant Era Boss!
+        this.gameState.currencies.mythicShards += 50;
+        this.gameState.currencies.titanCores += 5;
+        this.gameState.currencies.eraEnergy += 5000;
+        
+        const curEraInfo = ERA_DATA[eraId];
+        const nextEraMat = curEraInfo ? curEraInfo.primaryMaterial : "primordial_essence";
+        if (this.gameState.currencies.materials[nextEraMat] === undefined) {
+           this.gameState.currencies.materials[nextEraMat] = 0;
+        }
+        this.gameState.currencies.materials[nextEraMat] += 1000;
+        
+        this.particles.addFloatingText("ERA CONQUERED! MASSIVE LOOT", 640, 280, "#ff4081", 32, true);
+        
+        // Unlock next era
+        const eraOrder: EraId[] = ["dawn", "fire", "stone", "bronze", "iron", "faith", "discovery", "steam", "atom", "stars"];
+        const currentIdx = eraOrder.indexOf(eraId);
+        if (currentIdx >= 0 && currentIdx < eraOrder.length - 1) {
+          const nextEra = eraOrder[currentIdx + 1];
+          if (!this.gameState.unlockedEras.includes(nextEra)) {
+             this.gameState.unlockedEras.push(nextEra);
+             logger.printLine(`*** ERA UNLOCKED: ${nextEra.toUpperCase()} ***`, "#ffd700");
+          }
+        }
+        
+        this.gameState.distanceMeters += 0.5;
+        this.hero.distanceMeters = this.gameState.distanceMeters;
+      } else {
+        // Mini boss defeated
+        this.gameState.distanceMeters += 0.5; // push past the milestone into the next stage
+        this.hero.distanceMeters = this.gameState.distanceMeters;
+        logger.printLine(`*** STAGE CLEARED! MARCHING TO NEXT SECTOR ***`, "#7ee787");
+      }
+
       this.bossMode = false;
     }
 

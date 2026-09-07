@@ -1,7 +1,8 @@
-import { Container, Graphics, Sprite, Texture } from "pixi.js";
+import { Container, Graphics, Sprite, Texture, ColorMatrixFilter, Assets } from "pixi.js";
 import { EraId } from "./types";
 import { Hero } from "./Hero";
 import { MythicEnemy } from "./Enemy";
+import { ERA_STAGE_BACKGROUNDS, ALL_80_BACKGROUND_PATHS } from "./data/battlegrounds";
 
 interface MiniNinjaUnitRef {
   sprite: { x: number; y: number; scale: { x: number; y: number }; texture: Texture; alpha: number };
@@ -20,14 +21,14 @@ interface ParallaxLayerData {
 export const ERA_BACKGROUND_TEXTURES: Record<EraId, string> = {
   dawn: "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_1.jpg",
   fire: "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_1.jpg",
-  stone: "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_2.jpg",
+  stone: "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_1.jpg",
   bronze: "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_1.jpg",
   iron: "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_1.jpg",
-  faith: "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_1.jpg",
+  faith: "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_1.jpg",
   discovery: "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_1.jpg",
-  steam: "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_1.jpg",
+  steam: "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_1.jpg",
   atom: "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_1.jpg",
-  stars: "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_3.jpg"
+  stars: "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_1.jpg"
 };
 
 export class ParallaxEngine {
@@ -39,6 +40,10 @@ export class ParallaxEngine {
   private currentEra: EraId | null = null;
   private worldScrollX: number = 0;
   private ambientTimer: number = 0;
+  private stageFilter: ColorMatrixFilter;
+  private currentSubStage: number = -1;
+  private currentTexturePath: string = "";
+  public customBackgroundLocked: boolean = false;
 
   // Royalty-free background texture sprites for sky/horizon layer (Layer 1)
   private bgSprite1: Sprite;
@@ -51,13 +56,15 @@ export class ParallaxEngine {
   private enemyReflection: Sprite;
   private ninjaReflections: Sprite[] = [];
 
-  public groundY: number = 472;
+  public groundY: number = 550;
 
   constructor() {
     this.rootContainer = new Container();
+    this.stageFilter = new ColorMatrixFilter();
     this.rootContainer.label = "ParallaxEngineRoot";
 
     this.backgroundContainer = new Container();
+    this.backgroundContainer.filters = [this.stageFilter];
     this.backgroundContainer.label = "Parallax7Layers";
     this.rootContainer.addChild(this.backgroundContainer);
 
@@ -105,14 +112,16 @@ export class ParallaxEngine {
     // Attach royalty-free background landscape sprites to Layer 1 (Backdrop Art - 2560px Mirrored Reflection Tile)
     this.bgSprite1 = new Sprite(Texture.WHITE);
     this.bgSprite1.width = 2560;
-    this.bgSprite1.height = 512;
+    this.bgSprite1.height = 552;
     this.bgSprite1.alpha = 1.0;
+    this.bgSprite1.visible = false;
 
     this.bgSprite2 = new Sprite(Texture.WHITE);
     this.bgSprite2.width = 2560;
-    this.bgSprite2.height = 512;
+    this.bgSprite2.height = 552;
     this.bgSprite2.x = 2560;
     this.bgSprite2.alpha = 1.0;
+    this.bgSprite2.visible = false;
 
     // Put sprites at the lowest z-index inside Layer 1
     this.layers[0].container.addChildAt(this.bgSprite1, 0);
@@ -146,58 +155,28 @@ export class ParallaxEngine {
     this.reflectionContainer.addChild(this.waterRippleGfx);
   }
 
-  public setEra(eraId: EraId) {
-    this.currentEra = eraId;
+  public async applyBackgroundTexture(texPath: string) {
+    if (!texPath) return;
+    if (this.currentTexturePath === texPath && this.bgSprite1.visible && this.bgSprite1.texture !== Texture.WHITE) return;
+    this.currentTexturePath = texPath;
 
-    // Load royalty-free era background art
-    const texPath = ERA_BACKGROUND_TEXTURES[eraId];
-    if (texPath) {
-      try {
-        const tex = Texture.from(texPath);
-        if (tex instanceof Texture) {
-          this.bgSprite1.texture = tex;
-          this.bgSprite2.texture = tex;
-
-          const applyStretch = () => {
-            this.bgSprite1.width = 2560;
-            this.bgSprite1.height = 512;
-            this.bgSprite2.width = 2560;
-            this.bgSprite2.height = 512;
-            this.bgSprite2.x = 2560;
-            this.bgSprite1.visible = true;
-            this.bgSprite2.visible = true;
-          };
-
-          applyStretch();
-          if (tex.source) {
-            tex.source.once("update", applyStretch);
-          }
-        } else {
-          this.bgSprite1.visible = false;
-          this.bgSprite2.visible = false;
-        }
-      } catch {
-        this.bgSprite1.visible = false;
-        this.bgSprite2.visible = false;
-      }
-    }
-
-    this.renderAllEraLayers(eraId);
-    this.renderWaterBase(eraId);
-  }
-
-  public setCustomBackground(texPath: string) {
     try {
-      const tex = Texture.from(texPath);
-      if (tex instanceof Texture) {
+      let tex: Texture | null = null;
+      if (Assets.get(texPath)) {
+        tex = Assets.get(texPath);
+      } else {
+        tex = await Assets.load(texPath);
+      }
+
+      if (tex && tex instanceof Texture && this.currentTexturePath === texPath) {
         this.bgSprite1.texture = tex;
         this.bgSprite2.texture = tex;
 
         const applyStretch = () => {
           this.bgSprite1.width = 2560;
-          this.bgSprite1.height = 512;
+          this.bgSprite1.height = 552;
           this.bgSprite2.width = 2560;
-          this.bgSprite2.height = 512;
+          this.bgSprite2.height = 552;
           this.bgSprite2.x = 2560;
           this.bgSprite1.visible = true;
           this.bgSprite2.visible = true;
@@ -208,9 +187,43 @@ export class ParallaxEngine {
           tex.source.once("update", applyStretch);
         }
       }
-    } catch {
-      // Safe fallback
+    } catch (err) {
+      console.warn("Could not load background texture:", texPath, err);
     }
+  }
+
+  public updateStageBackground(subStageIndex: number) {
+    if (this.customBackgroundLocked) return;
+    const era = this.currentEra || "dawn";
+    const eraList = ERA_STAGE_BACKGROUNDS[era] || ALL_80_BACKGROUND_PATHS;
+    if (!eraList || eraList.length === 0) return;
+    // Cycle through the backgrounds designated for this era's sub-stages
+    const bgPath = eraList[Math.abs(subStageIndex) % eraList.length];
+    if (bgPath) {
+      this.applyBackgroundTexture(bgPath);
+    }
+  }
+
+  public setEra(eraId: EraId, subStage: number = 0) {
+    this.currentEra = eraId;
+    this.customBackgroundLocked = false;
+    this.currentSubStage = subStage;
+
+    this.updateStageBackground(subStage);
+    this.renderAllEraLayers(eraId);
+    this.renderWaterBase(eraId);
+  }
+
+  public setCustomBackground(texPath: string, lock: boolean = true) {
+    this.customBackgroundLocked = lock;
+    this.applyBackgroundTexture(texPath);
+  }
+
+  public unlockCustomBackground(distanceMeters: number = 0) {
+    this.customBackgroundLocked = false;
+    const subStage = Math.floor(distanceMeters / 100);
+    this.currentSubStage = subStage;
+    this.updateStageBackground(subStage);
   }
 
   public update(
@@ -220,9 +233,17 @@ export class ParallaxEngine {
     facing: number,
     hero: Hero,
     activeEnemy: MythicEnemy | null,
-    miniNinjas: MiniNinjaUnitRef[]
+    miniNinjas: MiniNinjaUnitRef[],
+    distanceMeters: number = 0
   ) {
     this.ambientTimer += delta * 0.03;
+    const subStage = Math.floor(distanceMeters / 100);
+    if (this.currentSubStage !== subStage) {
+      this.currentSubStage = subStage;
+      if (!this.customBackgroundLocked) {
+        this.updateStageBackground(subStage);
+      }
+    }
 
     // Advance world scroll when walking / progressing
     const scrollStep = isWalking ? walkSpeed * 1.2 * facing : 0.45 * facing;
@@ -328,7 +349,7 @@ export class ParallaxEngine {
   private renderWaterBase(eraId: EraId) {
     this.waterBaseGfx.clear();
     const gy = this.groundY;
-    const h = 720 - gy;
+    const fullHeight = 720 - gy;
 
     let waterColor = 0x070c14;
     let deepColor = 0x03060a;
@@ -339,12 +360,21 @@ export class ParallaxEngine {
     } else if (eraId === "fire") {
       waterColor = 0x140c08;
       deepColor = 0x090503;
+    } else if (eraId === "stone") {
+      waterColor = 0x0c1410;
+      deepColor = 0x040806;
     } else if (eraId === "bronze") {
       waterColor = 0x0a1a24;
       deepColor = 0x040d14;
+    } else if (eraId === "iron") {
+      waterColor = 0x0d141b;
+      deepColor = 0x05080c;
     } else if (eraId === "faith") {
       waterColor = 0x0f0e1c;
       deepColor = 0x07060e;
+    } else if (eraId === "discovery") {
+      waterColor = 0x0d1a22;
+      deepColor = 0x050b0f;
     } else if (eraId === "steam") {
       waterColor = 0x14110d;
       deepColor = 0x0b0907;
@@ -356,16 +386,49 @@ export class ParallaxEngine {
       deepColor = 0x04030d;
     }
 
-    // Deep crystalline reflective surface base
-    this.waterBaseGfx.fill(waterColor).rect(0, gy, 1280, h);
-    this.waterBaseGfx.fill({ color: deepColor, alpha: 0.65 }).rect(0, gy + 45, 1280, h - 45);
-    this.waterBaseGfx.fill({ color: 0x000000, alpha: 0.6 }).rect(0, gy + 110, 1280, h - 110);
+    // 1. Solid reflective water body from groundY down to screen bottom (720px)
+    this.waterBaseGfx.fill({ color: waterColor, alpha: 0.92 }).rect(0, gy, 1280, fullHeight);
+    
+    // 2. Deep underwater layered horizontal depth gradients
+    for (let yOffset = 15; yOffset < fullHeight; yOffset += 28) {
+      const alphaVal = Math.min(0.85, 0.3 + (yOffset / fullHeight) * 0.55);
+      this.waterBaseGfx.fill({ color: deepColor, alpha: alphaVal }).rect(0, gy + yOffset, 1280, 16);
+    }
+
+    // 3. Glowing caustic water particle bubbles and light flecks across the water volume
+    const time = this.ambientTimer * 3.5;
+    for (let i = 0; i < 40; i++) {
+      const px = (i * 137.5 + time * 25) % 1280;
+      const py = gy + 15 + ((i * 59.2 + Math.sin(time + i) * 12) % (fullHeight - 25));
+      const pRadius = 1.5 + (i % 3);
+      const pAlpha = 0.25 + 0.35 * Math.sin(time + i);
+      this.waterBaseGfx.fill({ color: 0x79c0ff, alpha: pAlpha }).circle(px, py, pRadius);
+    }
+
+    // 4. Vibrant wavy shimmering color reflection streaks representing all background layers
+    for (let layerIdx = 0; layerIdx < this.layers.length; layerIdx++) {
+      const alphaReflect = Math.max(0.1, 0.38 - layerIdx * 0.035);
+      const waveFreq = 30 + layerIdx * 12;
+      const streakColor = layerIdx === 0 ? 0x99ccff : layerIdx === 1 ? 0x6699ff : layerIdx === 2 ? 0x58a6ff : layerIdx === 3 ? 0x388bfd : 0x1f6feb;
+
+      this.waterBaseGfx.stroke({ width: 2.5 + (6 - layerIdx) * 0.5, color: streakColor, alpha: alphaReflect });
+      
+      for (let relY = 12; relY < fullHeight - 12; relY += 18) {
+        this.waterBaseGfx.moveTo(0, gy + relY);
+        for (let x = 0; x <= 1280; x += 60) {
+          const waveDistort = Math.sin((x / waveFreq) + time + (relY * 0.12) + layerIdx) * (6 + layerIdx * 1.2);
+          this.waterBaseGfx.lineTo(x, gy + relY + waveDistort);
+        }
+      }
+    }
   }
 
   private renderAllEraLayers(eraId: EraId) {
     for (const l of this.layers) {
       l.g1.clear();
+      l.g1.removeChildren();
       l.g2.clear();
+      l.g2.removeChildren();
     }
 
     // Populate both g1 and g2 identically so seamless wrapping is perfect
@@ -474,153 +537,221 @@ export class ParallaxEngine {
   // LAYER 3: Iconic Era Landmarks, Monuments & Interesting Things Along the Way (0.18x)
   private renderEraLayer3(g: Graphics, eraId: EraId) {
     if (eraId === "dawn") {
-      // Primordial Basalt Spires, Volcanic Fossilized Leviathan Ribs & Magma Monoliths
-      g.fill(0x28120e);
-      // Ancient Spire 1
-      g.poly([120, 490, 150, 230, 180, 490]);
-      // Colossal Fossil Leviathan Rib Arches
-      g.stroke({ width: 8, color: 0x3d2018, alpha: 0.95 }).moveTo(240, 490).bezierCurveTo(260, 300, 340, 300, 360, 490);
-      g.stroke({ width: 7, color: 0x3d2018, alpha: 0.95 }).moveTo(350, 490).bezierCurveTo(370, 320, 430, 320, 450, 490);
-      // Volcanic Monolith Tower
-      g.poly([680, 490, 710, 180, 750, 490]);
-      g.stroke({ width: 3, color: 0xff5500, alpha: 0.7 }).moveTo(710, 190).lineTo(715, 480); // Magma vein
-      // Steaming Lava Vent
-      g.fill(0x381810).poly([960, 490, 1000, 290, 1040, 490]);
-      g.fill({ color: 0xff3300, alpha: 0.8 }).rect(994, 290, 12, 6);
-    } else if (eraId === "fire") {
-      // Scorched Earth Dragon Bone Shrines & Towering Flame Altars
-      g.fill(0x24150d);
-      // Dragon Horn Spire
-      g.poly([160, 490, 220, 240, 280, 490]);
-      // Tribal Flame Brazier Altar
-      g.rect(480, 310, 120, 180);
-      g.fill(0x402214).poly([460, 310, 540, 260, 620, 310]);
-      g.fill(0xff6600).poly([510, 260, 540, 210, 570, 260]); // Eternal Fire
-      // Bone Totem Gate
-      g.rect(880, 280, 24, 210);
-      g.rect(980, 280, 24, 210);
-      g.stroke({ width: 6, color: 0x382012, alpha: 0.95 }).moveTo(870, 300).lineTo(1010, 300);
-    } else if (eraId === "stone") {
-      // Stonehenge Megalith Trilithon Arches & Carved Dolmen Cairns
-      g.fill(0x2c2b27);
-      // Trilithon 1
-      g.rect(160, 270, 34, 220);
-      g.rect(220, 270, 34, 220);
-      g.rect(145, 246, 125, 26);
-      // Megalithic Standing Stone with carved spiral rune
-      g.poly([520, 490, 540, 220, 570, 220, 590, 490]);
-      g.stroke({ width: 2, color: 0x58a6ff, alpha: 0.6 }).moveTo(555, 300).lineTo(555, 360);
-      // Trilithon 2
-      g.rect(860, 250, 38, 240);
-      g.rect(930, 250, 38, 240);
-      g.rect(840, 224, 144, 28);
-    } else if (eraId === "bronze") {
-      // Classical Greco-Roman Corinthian Colonnades & Marble Pediments
-      g.fill(0x323e4a);
-      // Temple Colonnade
-      g.rect(420, 270, 440, 220);
-      for (let i = 0; i < 8; i++) {
-        g.fill(0x4b5b6d).rect(440 + i * 52, 290, 22, 200);
+      try {
+        const texPillar = Texture.from("assets/sprites/objects/dawn_rock_pillar.png");
+        const texObelisk = Texture.from("assets/sprites/objects/dawn_sky_obelisk.png");
+
+        const obelisk = new Sprite(texObelisk);
+        obelisk.anchor.set(0.5, 1);
+        obelisk.x = 350;
+        obelisk.y = 495;
+        obelisk.scale.set(0.65);
+        obelisk.tint = 0xdddddd;
+        g.addChild(obelisk);
+
+        const pillar = new Sprite(texPillar);
+        pillar.anchor.set(0.5, 1);
+        pillar.x = 900;
+        pillar.y = 495;
+        pillar.scale.set(0.8);
+        pillar.tint = 0xdde4ec;
+        g.addChild(pillar);
+      } catch (err) {
+        console.warn("Could not load dawn layer 3 sprites", err);
       }
-      // Sculpted Triangle Pediment
-      g.fill(0x566779).poly([400, 270, 640, 160, 880, 270]);
-      // Classical Victory Obelisk
-      g.fill(0x3d4b5a).poly([160, 490, 180, 210, 200, 490]);
-      g.fill(0xffd700).poly([175, 210, 180, 190, 185, 210]); // Gilded pyramidion
-      // Roadside Marble Urn Monument
-      g.fill(0x425364).rect(1060, 380, 40, 110);
-      g.fill(0x5a6d80).ellipse(1080, 360, 32, 24);
+    } else if (eraId === "fire") {
+      try {
+        const texSkull = Texture.from("assets/sprites/objects/fire_dragon_skull.png");
+        const texStalagmites = Texture.from("assets/sprites/objects/fire_stalagmites.png");
+
+        const skull = new Sprite(texSkull);
+        skull.anchor.set(0.5, 1);
+        skull.x = 280;
+        skull.y = 495;
+        skull.scale.set(0.65);
+        skull.tint = 0xeeccaa;
+        g.addChild(skull);
+
+        const stalagmite = new Sprite(texStalagmites);
+        stalagmite.anchor.set(0.5, 1);
+        stalagmite.x = 950;
+        stalagmite.y = 495;
+        stalagmite.scale.set(0.7);
+        stalagmite.tint = 0xddbb99;
+        g.addChild(stalagmite);
+      } catch (err) {
+        console.warn("Could not load fire layer 3 sprites", err);
+      }
+    } else if (eraId === "stone") {
+      try {
+        const texTotem = Texture.from("assets/sprites/objects/stone_bone_totem.png");
+        const texBoulder = Texture.from("assets/sprites/objects/stone_mossy_boulder.png");
+
+        const totem = new Sprite(texTotem);
+        totem.anchor.set(0.5, 1);
+        totem.x = 220;
+        totem.y = 495;
+        totem.scale.set(0.7);
+        totem.tint = 0xaabbcc;
+        g.addChild(totem);
+
+        const boulder = new Sprite(texBoulder);
+        boulder.anchor.set(0.5, 1);
+        boulder.x = 900;
+        boulder.y = 495;
+        boulder.scale.set(0.85);
+        boulder.tint = 0xaabbcc;
+        g.addChild(boulder);
+      } catch (err) {
+        console.warn("Could not load stone layer 3 sprites", err);
+      }
+    } else if (eraId === "bronze") {
+      try {
+        const texPillar = Texture.from("assets/sprites/objects/bronze_sandstone_pillar.png");
+        const texAnubis = Texture.from("assets/sprites/objects/bronze_anubis_statue.png");
+
+        const pillar = new Sprite(texPillar);
+        pillar.anchor.set(0.5, 1);
+        pillar.x = 260;
+        pillar.y = 495;
+        pillar.scale.set(0.7);
+        g.addChild(pillar);
+
+        const anubis = new Sprite(texAnubis);
+        anubis.anchor.set(0.5, 1);
+        anubis.x = 940;
+        anubis.y = 495;
+        anubis.scale.set(0.85);
+        g.addChild(anubis);
+      } catch (err) {
+        console.warn("Could not load bronze layer 3 sprites", err);
+      }
     } else if (eraId === "iron") {
-      // Medieval Fortress Watchtowers, Crenellated Ramparts & Rippling Lion War Banners
-      g.fill(0x282c33);
-      g.rect(0, 350, 1280, 140);
-      // Watchtower 1
-      g.rect(220, 220, 110, 270);
-      g.rect(205, 198, 140, 24);
-      // Rippling Crimson War Banner
-      g.fill(0xda3633).rect(280, 130, 32, 68);
-      g.fill(0xffd700).rect(288, 150, 16, 16); // Gilded crest
-      // Watchtower 2
-      g.rect(840, 200, 120, 290);
-      g.rect(825, 178, 150, 24);
-      g.fill(0xda3633).rect(910, 110, 32, 68);
-      // Crenellations
-      for (let x = 0; x < 1280; x += 36) {
-        g.rect(x, 332, 20, 20);
+      try {
+        const texWall = Texture.from("assets/sprites/objects/iron_castle_wall.png");
+        const texTent = Texture.from("assets/sprites/objects/iron_war_tent.png");
+
+        const wall = new Sprite(texWall);
+        wall.anchor.set(0.5, 1);
+        wall.x = 280;
+        wall.y = 495;
+        wall.scale.set(0.75);
+        g.addChild(wall);
+
+        const tent = new Sprite(texTent);
+        tent.anchor.set(0.5, 1);
+        tent.x = 920;
+        tent.y = 495;
+        tent.scale.set(0.7);
+        g.addChild(tent);
+      } catch (err) {
+        console.warn("Could not load iron layer 3 sprites", err);
       }
     } else if (eraId === "faith") {
-      // Soaring Gothic Cathedral Spire, Rose Window & Flying Buttresses
-      g.fill(0x1e1a2b);
-      // Main Nave
-      g.rect(460, 220, 360, 270);
-      // Twin Soaring Spires
-      g.poly([440, 220, 480, 60, 520, 220]);
-      g.poly([760, 220, 800, 60, 840, 220]);
-      // Delicate Rose Window (Golden & Sapphire Inlay)
-      g.fill(0xffd700).ellipse(640, 280, 42, 42);
-      g.fill(0x203060).ellipse(640, 280, 34, 34);
-      g.stroke({ width: 2, color: 0xfffa88, alpha: 0.8 }).moveTo(640, 246).lineTo(640, 314);
-      g.stroke({ width: 2, color: 0xfffa88, alpha: 0.8 }).moveTo(606, 280).lineTo(674, 280);
-      // Flying buttresses
-      g.stroke({ width: 5, color: 0x2b253d, alpha: 0.9 }).moveTo(460, 250).lineTo(380, 370).lineTo(380, 490);
-      g.stroke({ width: 5, color: 0x2b253d, alpha: 0.9 }).moveTo(820, 250).lineTo(900, 370).lineTo(900, 490);
-      // Angelic Stone Statue Plinth
-      g.fill(0x252035).rect(160, 340, 44, 150);
-      g.fill(0x453d5a).poly([160, 340, 182, 290, 204, 340]); // Winged Angel silhouette
+      try {
+        const texTomb = Texture.from("assets/sprites/objects/faith_gothic_tomb.png");
+        const texTree = Texture.from("assets/sprites/objects/faith_dead_tree.png");
+
+        const tomb = new Sprite(texTomb);
+        tomb.anchor.set(0.5, 1);
+        tomb.x = 280;
+        tomb.y = 495;
+        tomb.scale.set(0.7);
+        g.addChild(tomb);
+
+        const tree = new Sprite(texTree);
+        tree.anchor.set(0.5, 1);
+        tree.x = 940;
+        tree.y = 495;
+        tree.scale.set(0.75);
+        g.addChild(tree);
+      } catch (err) {
+        console.warn("Could not load faith layer 3 sprites", err);
+      }
     } else if (eraId === "discovery") {
-      // Renaissance Alchemical Observatory Dome, Armillary Sphere & Celestial Globe
-      g.fill(0x1a2e38);
-      g.rect(460, 280, 360, 210);
-      // Observatory Dome
-      g.fill(0x244250).poly([480, 280, 640, 170, 800, 280]);
-      // Rotating Brass Armillary Sphere Rings
-      g.stroke({ width: 3, color: 0xd29922, alpha: 0.85 }).ellipse(640, 170, 70, 30);
-      g.stroke({ width: 3, color: 0xd29922, alpha: 0.85 }).ellipse(640, 170, 30, 70);
-      // Coastal Navigational Lighthouse Tower
-      g.fill(0x203744).poly([140, 490, 165, 230, 195, 230, 220, 490]);
-      g.fill(0xffd700).rect(170, 236, 20, 16); // Lamp room
+      try {
+        const texShip = Texture.from("assets/sprites/objects/discovery_shipwreck.png");
+        const texAnchor = Texture.from("assets/sprites/objects/discovery_anchor.png");
+
+        const ship = new Sprite(texShip);
+        ship.anchor.set(0.5, 1);
+        ship.x = 280;
+        ship.y = 495;
+        ship.scale.set(0.75);
+        g.addChild(ship);
+
+        const anchor = new Sprite(texAnchor);
+        anchor.anchor.set(0.5, 1);
+        anchor.x = 940;
+        anchor.y = 495;
+        anchor.scale.set(0.7);
+        g.addChild(anchor);
+      } catch (err) {
+        console.warn("Could not load discovery layer 3 sprites", err);
+      }
     } else if (eraId === "steam") {
-      // Victorian Industrial Clocktower, Steam Exhausts & Turning Brass Cogs
-      g.fill(0x2e231b);
-      g.rect(0, 340, 1280, 150);
-      // Grand Factory Clocktower
-      g.rect(480, 180, 140, 310);
-      g.poly([460, 180, 550, 100, 640, 180]);
-      // Glowing Clock Face
-      g.fill(0xfffae0).ellipse(550, 230, 32, 32);
-      g.stroke({ width: 2, color: 0x332211 }).moveTo(550, 230).lineTo(550, 208);
-      g.stroke({ width: 2, color: 0x332211 }).moveTo(550, 230).lineTo(564, 230);
-      // Smokestacks with Industrial Piping
-      g.poly([240, 490, 255, 140, 290, 140, 305, 490]);
-      g.poly([880, 490, 895, 110, 935, 110, 950, 490]);
-      // Rhythmic Puffs of Steam
-      g.fill({ color: 0xeeeeee, alpha: 0.4 }).ellipse(272, 115, 24, 18);
-      g.fill({ color: 0xeeeeee, alpha: 0.4 }).ellipse(915, 85, 30, 22);
+      try {
+        const texStack = Texture.from("assets/sprites/objects/steam_smokestack.png");
+        const texGear = Texture.from("assets/sprites/objects/steam_gear_mechanism.png");
+
+        const stack = new Sprite(texStack);
+        stack.anchor.set(0.5, 1);
+        stack.x = 280;
+        stack.y = 495;
+        stack.scale.set(0.7);
+        g.addChild(stack);
+
+        const gear = new Sprite(texGear);
+        gear.anchor.set(0.5, 1);
+        gear.x = 940;
+        gear.y = 495;
+        gear.scale.set(0.75);
+        g.addChild(gear);
+      } catch (err) {
+        console.warn("Could not load steam layer 3 sprites", err);
+      }
     } else if (eraId === "atom") {
-      // Hyperbolic Nuclear Cooling Towers & High-Voltage Tesla Energy Conductors
-      g.fill(0x132718);
-      // Cooling Tower 1
-      g.poly([220, 490, 260, 180, 370, 180, 410, 490]);
-      g.fill({ color: 0x39ff14, alpha: 0.7 }).rect(280, 230, 70, 8); // Radiation ring
-      // Cooling Tower 2
-      g.poly([820, 490, 860, 180, 970, 180, 1010, 490]);
-      g.fill({ color: 0x39ff14, alpha: 0.7 }).rect(880, 230, 70, 8);
-      // High-Voltage Grid Pylon
-      g.stroke({ width: 3.5, color: 0x00e5ff, alpha: 0.65 })
-        .moveTo(620, 490).lineTo(620, 190)
-        .lineTo(660, 240).lineTo(580, 240);
+      try {
+        const texCore = Texture.from("assets/sprites/objects/atom_fusion_core.png");
+        const texConduit = Texture.from("assets/sprites/objects/atom_energy_conduit.png");
+
+        const core = new Sprite(texCore);
+        core.anchor.set(0.5, 1);
+        core.x = 280;
+        core.y = 495;
+        core.scale.set(0.7);
+        g.addChild(core);
+
+        const conduit = new Sprite(texConduit);
+        conduit.anchor.set(0.5, 1);
+        conduit.x = 940;
+        conduit.y = 495;
+        conduit.scale.set(0.75);
+        g.addChild(conduit);
+      } catch (err) {
+        console.warn("Could not load atom layer 3 sprites", err);
+      }
     } else {
-      // Era of Stars: Transcendent Hyper-Jump Warp Gate & Anti-Gravity Monoliths
-      g.fill(0x161026);
-      // Hyper-Jump Warp Conduit Gate
-      g.stroke({ width: 8, color: 0x00e5ff, alpha: 0.85 }).ellipse(640, 280, 380, 110);
-      g.stroke({ width: 3, color: 0xff00ff, alpha: 0.65 }).ellipse(640, 280, 360, 90);
-      // Levitating Anti-Gravity Crystal Spire 1
-      g.poly([240, 430, 270, 180, 300, 430, 270, 460]);
-      g.fill({ color: 0x00f0ff, alpha: 0.6 }).ellipse(270, 310, 12, 40);
-      // Levitating Anti-Gravity Crystal Spire 2
-      g.poly([980, 430, 1010, 160, 1040, 430, 1010, 460]);
-      g.fill({ color: 0xbb86fc, alpha: 0.6 }).ellipse(1010, 290, 12, 40);
+      try {
+        const texMonolith = Texture.from("assets/sprites/objects/stars_quantum_monolith.png");
+        const texNode = Texture.from("assets/sprites/objects/stars_energy_node.png");
+
+        const monolith = new Sprite(texMonolith);
+        monolith.anchor.set(0.5, 1);
+        monolith.x = 280;
+        monolith.y = 495;
+        monolith.scale.set(0.75);
+        g.addChild(monolith);
+
+        const node = new Sprite(texNode);
+        node.anchor.set(0.5, 1);
+        node.x = 940;
+        node.y = 495;
+        node.scale.set(0.7);
+        g.addChild(node);
+      } catch (err) {
+        console.warn("Could not load stars layer 3 sprites", err);
+      }
     }
   }
 
@@ -653,6 +784,27 @@ export class ParallaxEngine {
       1280, 370,
       1280, 500
     ]);
+
+    if (eraId === "steam") {
+      try {
+        const texTree = Texture.from("assets/sprites/objects/forest_tree_1.png");
+        const distTree = new Sprite(texTree);
+        distTree.anchor.set(0.5, 1);
+        distTree.x = 220;
+        distTree.y = 440;
+        distTree.scale.set(0.4);
+        distTree.tint = 0x444d56; // Silhouette/shadow tint
+        g.addChild(distTree);
+
+        const distTree2 = new Sprite(texTree);
+        distTree2.anchor.set(0.5, 1);
+        distTree2.x = 840;
+        distTree2.y = 430;
+        distTree2.scale.set(0.45);
+        distTree2.tint = 0x444d56; 
+        g.addChild(distTree2);
+      } catch(err){}
+    }
   }
 
   // LAYER 5: Atmospheric Volumetric Mist, Weather & Ambient Glow (0.50x)
@@ -675,68 +827,216 @@ export class ParallaxEngine {
 
   // LAYER 6: Roadside Markers, Shrines, Torches & Pathside Props (0.72x)
   private renderEraLayer6(g: Graphics, eraId: EraId) {
-    if (eraId === "dawn" || eraId === "fire") {
-      // Primitive Ritual Torches & Molten Lava Fissures
-      g.fill(0x3a2014);
-      g.rect(180, 430, 8, 74);
-      g.fill(0xff6600).poly([180, 430, 184, 412, 188, 430]); // Torch fire
-      g.rect(820, 430, 8, 74);
-      g.fill(0xff6600).poly([820, 430, 824, 412, 828, 430]);
+    if (eraId === "dawn") {
+      try {
+        const texCrystal = Texture.from("assets/sprites/objects/dawn_crystal_cluster.png");
+        
+        const crystal1 = new Sprite(texCrystal);
+        crystal1.anchor.set(0.5, 1);
+        crystal1.x = 220;
+        crystal1.y = 515;
+        crystal1.scale.set(0.4);
+        g.addChild(crystal1);
+
+        const crystal2 = new Sprite(texCrystal);
+        crystal2.anchor.set(0.5, 1);
+        crystal2.x = 880;
+        crystal2.y = 510;
+        crystal2.scale.set(0.45);
+        crystal2.scale.x = -0.45; // mirror
+        g.addChild(crystal2);
+      } catch (err) {
+        console.warn("Could not load dawn layer 6 sprites", err);
+      }
+    } else if (eraId === "fire") {
+      try {
+        const texObsidian = Texture.from("assets/sprites/objects/fire_obsidian_rock.png");
+        
+        const obs1 = new Sprite(texObsidian);
+        obs1.anchor.set(0.5, 1);
+        obs1.x = 240;
+        obs1.y = 510;
+        obs1.scale.set(0.45);
+        g.addChild(obs1);
+
+        const obs2 = new Sprite(texObsidian);
+        obs2.anchor.set(0.5, 1);
+        obs2.x = 850;
+        obs2.y = 515;
+        obs2.scale.set(0.5);
+        obs2.scale.x = -0.5; // mirror
+        g.addChild(obs2);
+      } catch (err) {
+        console.warn("Could not load fire layer 6 sprites", err);
+      }
     } else if (eraId === "stone") {
-      // Carved Rune Stones & Standing Milestone Cairns
-      g.fill(0x3c3a34);
-      g.poly([240, 504, 250, 436, 272, 436, 282, 504]);
-      g.stroke({ width: 1.5, color: 0x58a6ff, alpha: 0.7 }).moveTo(260, 450).lineTo(260, 480);
-      g.poly([840, 504, 850, 428, 876, 428, 886, 504]);
+      try {
+        const texBarricade = Texture.from("assets/sprites/objects/stone_spiked_barricade.png");
+        
+        const b1 = new Sprite(texBarricade);
+        b1.anchor.set(0.5, 1);
+        b1.x = 260;
+        b1.y = 510;
+        b1.scale.set(0.45);
+        g.addChild(b1);
+
+        const b2 = new Sprite(texBarricade);
+        b2.anchor.set(0.5, 1);
+        b2.x = 860;
+        b2.y = 515;
+        b2.scale.set(0.5);
+        b2.scale.x = -0.5; // mirror
+        g.addChild(b2);
+      } catch (err) {
+        console.warn("Could not load stone layer 6 sprites", err);
+      }
     } else if (eraId === "bronze") {
-      // Classical Bronze Urns & Stone Road Milestone Posts
-      g.fill(0xcd7f32);
-      g.rect(220, 448, 26, 56);
-      g.rect(212, 438, 42, 12);
-      g.rect(820, 448, 26, 56);
-      g.rect(812, 438, 42, 12);
+      try {
+        const texPalm = Texture.from("assets/sprites/objects/bronze_palm_tree.png");
+        
+        const palm1 = new Sprite(texPalm);
+        palm1.anchor.set(0.5, 1);
+        palm1.x = 240;
+        palm1.y = 515;
+        palm1.scale.set(0.5);
+        g.addChild(palm1);
+
+        const palm2 = new Sprite(texPalm);
+        palm2.anchor.set(0.5, 1);
+        palm2.x = 880;
+        palm2.y = 510;
+        palm2.scale.set(0.55);
+        palm2.scale.x = -0.55; // mirror
+        g.addChild(palm2);
+      } catch (err) {
+        console.warn("Could not load bronze layer 6 sprites", err);
+      }
     } else if (eraId === "iron") {
-      // Imperial War Banners & Iron Lance Posts
-      g.fill(0x2f343b);
-      g.rect(200, 405, 6, 99);
-      g.fill(0xda3633).rect(206, 412, 38, 24); // War banner
-      g.rect(860, 405, 6, 99);
-      g.fill(0xda3633).rect(866, 412, 38, 24);
+      try {
+        const texBallista = Texture.from("assets/sprites/objects/iron_siege_ballista.png");
+        
+        const b1 = new Sprite(texBallista);
+        b1.anchor.set(0.5, 1);
+        b1.x = 240;
+        b1.y = 515;
+        b1.scale.set(0.45);
+        g.addChild(b1);
+
+        const b2 = new Sprite(texBallista);
+        b2.anchor.set(0.5, 1);
+        b2.x = 880;
+        b2.y = 515;
+        b2.scale.set(0.5);
+        b2.scale.x = -0.5; // mirror
+        g.addChild(b2);
+      } catch (err) {
+        console.warn("Could not load iron layer 6 sprites", err);
+      }
     } else if (eraId === "faith") {
-      // Sanctuary Stone Lanterns with Glowing Amber Candles
-      g.fill(0x342e44);
-      g.rect(240, 436, 16, 68);
-      g.fill(0xffd700).poly([240, 436, 248, 422, 256, 436]);
-      g.rect(840, 436, 16, 68);
-      g.fill(0xffd700).poly([840, 436, 848, 422, 856, 436]);
+      try {
+        const texFence = Texture.from("assets/sprites/objects/faith_iron_fence.png");
+        
+        const f1 = new Sprite(texFence);
+        f1.anchor.set(0.5, 1);
+        f1.x = 240;
+        f1.y = 515;
+        f1.scale.set(0.45);
+        g.addChild(f1);
+
+        const f2 = new Sprite(texFence);
+        f2.anchor.set(0.5, 1);
+        f2.x = 880;
+        f2.y = 515;
+        f2.scale.set(0.5);
+        f2.scale.x = -0.5; // mirror
+        g.addChild(f2);
+      } catch (err) {
+        console.warn("Could not load faith layer 6 sprites", err);
+      }
     } else if (eraId === "discovery") {
-      // Navigational Compass Posts & Bronze Maritime Lanterns
-      g.fill(0x263a44);
-      g.rect(210, 420, 8, 84);
-      g.fill(0xd29922).ellipse(214, 414, 10, 10);
-      g.rect(830, 420, 8, 84);
-      g.fill(0xd29922).ellipse(834, 414, 10, 10);
+      try {
+        const texBarrels = Texture.from("assets/sprites/objects/discovery_barrels.png");
+        
+        const b1 = new Sprite(texBarrels);
+        b1.anchor.set(0.5, 1);
+        b1.x = 240;
+        b1.y = 515;
+        b1.scale.set(0.45);
+        g.addChild(b1);
+
+        const b2 = new Sprite(texBarrels);
+        b2.anchor.set(0.5, 1);
+        b2.x = 880;
+        b2.y = 515;
+        b2.scale.set(0.5);
+        b2.scale.x = -0.5; // mirror
+        g.addChild(b2);
+      } catch (err) {
+        console.warn("Could not load discovery layer 6 sprites", err);
+      }
     } else if (eraId === "steam") {
-      // Victorian Cast Iron Gas Streetlamps
-      g.fill(0x221d18);
-      g.rect(200, 405, 8, 99);
-      g.fill(0xffea88).poly([196, 405, 204, 392, 212, 405]); // Gas mantle
-      g.rect(820, 405, 8, 99);
-      g.fill(0xffea88).poly([816, 405, 824, 392, 832, 405]);
+      try {
+        const texLamp = Texture.from("assets/sprites/objects/steam_lamp_post.png");
+        
+        const l1 = new Sprite(texLamp);
+        l1.anchor.set(0.5, 1);
+        l1.x = 240;
+        l1.y = 515;
+        l1.scale.set(0.45);
+        g.addChild(l1);
+
+        const l2 = new Sprite(texLamp);
+        l2.anchor.set(0.5, 1);
+        l2.x = 880;
+        l2.y = 515;
+        l2.scale.set(0.5);
+        l2.scale.x = -0.5; // mirror
+        g.addChild(l2);
+      } catch (err) {
+        console.warn("Could not load steam layer 6 sprites", err);
+      }
     } else if (eraId === "atom") {
-      // Cybernetic Boundary Beacons & Radiation Warning Posts
-      g.fill(0x1d2e20);
-      g.rect(220, 436, 10, 68);
-      g.fill(0x39ff14).rect(218, 426, 14, 10);
-      g.rect(860, 436, 10, 68);
-      g.fill(0x00e5ff).rect(858, 426, 14, 10);
+      try {
+        const texBeacon = Texture.from("assets/sprites/objects/atom_boundary_beacon.png");
+        
+        const b1 = new Sprite(texBeacon);
+        b1.anchor.set(0.5, 1);
+        b1.x = 240;
+        b1.y = 515;
+        b1.scale.set(0.45);
+        g.addChild(b1);
+
+        const b2 = new Sprite(texBeacon);
+        b2.anchor.set(0.5, 1);
+        b2.x = 880;
+        b2.y = 515;
+        b2.scale.set(0.5);
+        b2.scale.x = -0.5; // mirror
+        g.addChild(b2);
+      } catch (err) {
+        console.warn("Could not load atom layer 6 sprites", err);
+      }
     } else {
-      // Era of Stars: Transcendent Energy Nodes & Floating Quantum Monoliths
-      g.fill(0x1c1638);
-      g.poly([240, 438, 250, 408, 260, 438, 250, 468]);
-      g.stroke({ width: 2, color: 0x00e5ff, alpha: 0.85 }).moveTo(240, 438).lineTo(260, 438);
-      g.poly([840, 438, 850, 408, 860, 438, 850, 468]);
-      g.stroke({ width: 2, color: 0x00e5ff, alpha: 0.85 }).moveTo(840, 438).lineTo(860, 438);
+      try {
+        const texPylon = Texture.from("assets/sprites/objects/stars_warp_pylon.png");
+        
+        const p1 = new Sprite(texPylon);
+        p1.anchor.set(0.5, 1);
+        p1.x = 240;
+        p1.y = 515;
+        p1.scale.set(0.45);
+        g.addChild(p1);
+
+        const p2 = new Sprite(texPylon);
+        p2.anchor.set(0.5, 1);
+        p2.x = 880;
+        p2.y = 515;
+        p2.scale.set(0.5);
+        p2.scale.x = -0.5; // mirror
+        g.addChild(p2);
+      } catch (err) {
+        console.warn("Could not load stars layer 6 sprites", err);
+      }
     }
   }
 

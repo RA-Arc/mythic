@@ -15,11 +15,15 @@ export type HeroState =
   | "swim"
   | "hurt"
   | "defend"
-  | "death";
+  | "death"
+  | "dodge"
+  | "parry"
+  | "turn"
+  | "levelup";
 
 export class Hero {
   sprite: AnimatedSprite;
-  weaponSprite: PIXI.Sprite;
+  weaponSprite: Sprite;
   state: HeroState = "idle";
 
   // Base Ninja Animations
@@ -43,7 +47,10 @@ export class Hero {
     defend: [],
     hurt: [],
     death: [],
-    levelup: []
+    levelup: [],
+    dodge: [],
+    parry: [],
+    turn: []
   };
 
   level: number = 1;
@@ -76,6 +83,29 @@ export class Hero {
   maxDistanceReached: number = 0;
   soulDiamonds: number = 0;
   chiSkillPoints: number = 2;
+  statPoints: number = 0;
+  stats: {
+    agility: number;
+    dexterity: number;
+    wisdom: number;
+    charisma: number;
+    stamina: number;
+    vitality: number;
+    cosmicReson: number;
+    chronosFlux: number;
+  } = {
+    agility: 0,
+    dexterity: 0,
+    wisdom: 0,
+    charisma: 0,
+    stamina: 0,
+    vitality: 0,
+    cosmicReson: 0,
+    chronosFlux: 0
+  };
+
+  skillUsage: Record<string, number> = {};
+  skillLevels: Record<string, number> = {};
   troops: CompanionTroop[] = JSON.parse(JSON.stringify(INITIAL_COMPANION_TROOPS));
   relics: RogueRelic[] = JSON.parse(JSON.stringify(INITIAL_ROGUE_RELICS));
 
@@ -188,8 +218,9 @@ export class Hero {
 
   public syncVisuals() {
     // Update weapon texture
-    if (this.equippedShadowWeapon && this.equippedShadowWeapon.texturePath) {
-      this.weaponSprite.texture = Texture.from(this.equippedShadowWeapon.texturePath);
+    const weapon = this.equippedShadowWeapon as any;
+    if (weapon && weapon.texturePath) {
+      this.weaponSprite.texture = Texture.from(weapon.texturePath);
     } else {
       this.weaponSprite.texture = Texture.EMPTY;
     }
@@ -230,6 +261,9 @@ export class Hero {
     this.arcAngelAnimations.hurt = this.loadHero2NamedFrames("hero2-low-health", 6);
     this.arcAngelAnimations.death = this.loadHero2NamedFrames("hero2-perish", 6);
     this.arcAngelAnimations.levelup = this.loadHero2NamedFrames("hero2-levelup", 4);
+    this.arcAngelAnimations.dodge = this.loadHero2NamedFrames("hero2-dodge", 2);
+    this.arcAngelAnimations.parry = this.loadHero2NamedFrames("hero2-parry", 3);
+    this.arcAngelAnimations.turn = this.loadHero2NamedFrames("hero2-turn-center", 2);
   }
 
   private loadFrames(folder: string, prefix: string, count: number): Texture[] {
@@ -262,16 +296,37 @@ export class Hero {
     return getSafeTextures(frames);
   }
 
+  public allocateStat(statName: keyof Hero['stats']): boolean {
+    if (this.statPoints > 0) {
+      this.statPoints--;
+      this.stats[statName]++;
+      return true;
+    }
+    return false;
+  }
+
+  public recordSkillUsage(abilityId: string): { leveledUp: boolean; newLevel: number } {
+    this.skillUsage[abilityId] = (this.skillUsage[abilityId] || 0) + 1;
+    const curLevel = this.skillLevels[abilityId] || 1;
+    const req = curLevel * 10;
+    if (this.skillUsage[abilityId] >= req) {
+      this.skillLevels[abilityId] = curLevel + 1;
+      return { leveledUp: true, newLevel: curLevel + 1 };
+    }
+    return { leveledUp: false, newLevel: curLevel };
+  }
+
   public gainChi(amount: number) {
     const relicChiMult = 1 + (this.getRelicBonus("chiGainPercent") / 100);
-    this.chi = Math.min(this.maxChi, this.chi + (amount * relicChiMult));
+    const wisdomMult = 1 + (this.stats.wisdom * 0.05);
+    this.chi = Math.min(this.maxChi, this.chi + (amount * relicChiMult * wisdomMult));
   }
 
   public canTransform(form: TransformationType = "arc_angel"): boolean {
     if (this.permanentSeraphEnabled && form === "arc_angel") return true;
     if (form === "werewolf" && this.level < 8) return false;
     if (form === "mythic_drake" && this.level < 20) return false;
-    return this.chi >= 50 || this.isTransformed;
+    return this.chi >= 100 || this.isTransformed;
   }
 
   public transform(form: TransformationType, durationSec: number = 20) {
@@ -359,6 +414,7 @@ export class Hero {
       this.speed = Math.min(1.05, this.speed + 0.005);
       this.chiSkillPoints += 2;
       this.soulDiamonds += 2;
+      this.statPoints += 5; // +5 Stat Points on level up!
       leveled = true;
     }
     return leveled;
@@ -460,14 +516,15 @@ export class Hero {
       }
     });
 
-    // Shadow Requiem armor vitality
+    // Shadow Requiem armor vitality & allocated vitality stat
     let shadowHpBonus = 0;
     if (this.equippedShadowArmor) {
       shadowHpBonus += Math.floor((this.equippedShadowArmor.basePower || 0) * 0.6);
     }
+    const statVitalityBonus = this.stats.vitality * 18;
 
     const relicBonus = this.getRelicBonus("hpPercent") / 100;
-    const totalRaw = (this.maxHp + bonus + shadowHpBonus + traitBonus) * (1 + relicBonus);
+    const totalRaw = (this.maxHp + bonus + shadowHpBonus + statVitalityBonus + traitBonus) * (1 + relicBonus);
     let formMult = 1.0;
 
     if (this.activeForm === "arc_angel") formMult = 2.5;
@@ -486,21 +543,22 @@ export class Hero {
       }
     });
 
-    // Shadow Requiem armor, helm and weapon defense
+    // Shadow Requiem armor, helm and weapon defense + stamina stat
     let shadowDef = 0;
     if (this.equippedShadowArmor) shadowDef += (this.equippedShadowArmor.defenseBonus || 0);
     if (this.equippedShadowHelm) shadowDef += (this.equippedShadowHelm.defenseBonus || 0);
     if (this.equippedShadowWeapon) shadowDef += (this.equippedShadowWeapon.defenseBonus || 0);
+    const statStaminaBonus = this.stats.stamina * 4;
 
     const relicDef = this.getRelicBonus("defensePercent") / 100;
     const formDefBonus = this.activeForm === "arc_angel" ? 100 : this.activeForm === "werewolf" ? 40 : 80;
     const naturalDef = (this.level - 1) * 3;
 
-    return Math.floor((bonus + shadowDef + traitBonus + formDefBonus + naturalDef) * (1 + relicDef) * memoryMultiplier);
+    return Math.floor((bonus + shadowDef + statStaminaBonus + traitBonus + formDefBonus + naturalDef) * (1 + relicDef) * memoryMultiplier);
   }
 
   getCritRate(traitBonus: number = 0, memoryBonus: number = 0): number {
-    let rate = 5 + traitBonus + memoryBonus;
+    let rate = 5 + traitBonus + memoryBonus + (this.stats.dexterity * 0.75);
     Object.values(this.equipment).forEach(item => {
       if (item?.critRateBonus) rate += item.critRateBonus;
     });
@@ -518,7 +576,7 @@ export class Hero {
   }
 
   getCritDamageMultiplier(traitBonus: number = 0): number {
-    let mult = 1.5 + (traitBonus / 100);
+    let mult = 1.5 + (traitBonus / 100) + (this.stats.dexterity * 0.02);
     Object.values(this.equipment).forEach(item => {
       if (item?.critDmgBonus) mult += item.critDmgBonus / 100;
     });
@@ -537,16 +595,16 @@ export class Hero {
       if (item?.hasteBonus) hasteBonus += item.hasteBonus;
     });
 
-    let interval = Math.max(16, 45 - Math.floor(hasteBonus * 0.4));
+    let interval = Math.max(12, 45 - Math.floor(hasteBonus * 0.4) - Math.min(20, Math.floor(this.stats.agility * 0.5)));
 
     // Weapon dynamic attack speed
     const wType = this.equippedShadowWeapon?.weaponType;
     if (wType === 'nunchaku') {
-      interval = Math.max(10, Math.floor(interval * 0.65));
+      interval = Math.max(8, Math.floor(interval * 0.65));
     } else if (wType === 'dual_daggers') {
-      interval = Math.max(10, Math.floor(interval * 0.62));
+      interval = Math.max(8, Math.floor(interval * 0.62));
     } else if (wType === 'katana') {
-      interval = Math.max(12, Math.floor(interval * 0.78));
+      interval = Math.max(10, Math.floor(interval * 0.78));
     } else if (wType === 'kusarigama') {
       interval = Math.floor(interval * 0.9);
     } else if (wType === 'greatsword') {
@@ -555,8 +613,8 @@ export class Hero {
       interval = Math.floor(interval * 1.4);
     }
 
-    if (this.activeForm === "arc_angel") interval = Math.max(12, Math.floor(interval * 0.55));
-    else if (this.activeForm === "werewolf") interval = Math.max(14, Math.floor(interval * 0.65));
+    if (this.activeForm === "arc_angel") interval = Math.max(10, Math.floor(interval * 0.55));
+    else if (this.activeForm === "werewolf") interval = Math.max(12, Math.floor(interval * 0.65));
 
     return interval;
   }
@@ -566,7 +624,8 @@ export class Hero {
     Object.values(this.equipment).forEach(item => {
       if (item?.eraEnergyBonus) bonus += item.eraEnergyBonus;
     });
-    return bonus * (1 + (this.getRelicBonus("goldDropPercent") / 100));
+    const cosmicResonMult = 1 + (this.stats.cosmicReson * 0.05);
+    return bonus * cosmicResonMult * (1 + (this.getRelicBonus("goldDropPercent") / 100));
   }
 }
 

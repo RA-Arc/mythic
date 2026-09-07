@@ -634,3 +634,111 @@ export const BATTLEGROUND_PACKS: BackgroundPack[] = [
     ]
   }
 ];
+
+import { EraId } from "../types";
+
+export const ALL_80_BACKGROUND_SCENES: BackgroundScene[] = BATTLEGROUND_PACKS.flatMap(p => p.scenes);
+export const ALL_80_BACKGROUND_PATHS: string[] = ALL_80_BACKGROUND_SCENES.map(s => s.path);
+
+export const ERA_STAGE_BACKGROUNDS: Record<EraId, string[]> = {
+  dawn: [
+    "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/flying-island-battle-backgrounds/bg_4.jpg",
+    "assets/backgrounds/packs/free-4-nature-backgrounds-for-rpg-battle/bg_1.jpg",
+    "assets/backgrounds/packs/free-4-nature-backgrounds-for-rpg-battle/bg_2.jpg",
+    "assets/backgrounds/packs/free-4-nature-backgrounds-for-rpg-battle/bg_3.jpg",
+    "assets/backgrounds/packs/free-4-nature-backgrounds-for-rpg-battle/bg_4.jpg"
+  ],
+  fire: [
+    "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_1.jpg",
+    "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_2.jpg",
+    "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_3.jpg",
+    "assets/backgrounds/packs/dragon-caves-battleground-game-asset-pack/bg_4.jpg",
+    "assets/backgrounds/packs/free-rpg-battleground-asset-pack/bg_1.jpg",
+    "assets/backgrounds/packs/free-rpg-battleground-asset-pack/bg_2.jpg",
+    "assets/backgrounds/packs/free-rpg-battleground-asset-pack/bg_3.jpg",
+    "assets/backgrounds/packs/free-rpg-battleground-asset-pack/bg_4.jpg"
+  ],
+  stone: [
+    "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/cave-horizontal-rpg-battle-backgrounds/bg_4.jpg",
+    "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/orc-lands-horizontal-battle-backgrounds/bg_4.jpg"
+  ],
+  bronze: [
+    "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds/bg_4.jpg",
+    "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds-2/bg_1.jpg",
+    "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds-2/bg_2.jpg",
+    "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds-2/bg_3.jpg",
+    "assets/backgrounds/packs/horizontal-egypt-battle-backgrounds-2/bg_4.jpg"
+  ],
+  iron: [
+    "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/castle-horizontal-battle-backgrounds/bg_4.jpg",
+    "assets/backgrounds/packs/castle-battle-arena-asset-pack/bg_1.jpg",
+    "assets/backgrounds/packs/castle-battle-arena-asset-pack/bg_2.jpg",
+    "assets/backgrounds/packs/castle-battle-arena-asset-pack/bg_3.jpg",
+    "assets/backgrounds/packs/castle-battle-arena-asset-pack/bg_4.jpg"
+  ],
+  faith: [
+    "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/vampire-horizontal-battle-backgrounds/bg_4.jpg",
+    "assets/backgrounds/packs/free-vampires-locations-battle-background-pack/bg_1.jpg",
+    "assets/backgrounds/packs/free-vampires-locations-battle-background-pack/bg_2.jpg",
+    "assets/backgrounds/packs/free-vampires-locations-battle-background-pack/bg_3.jpg",
+    "assets/backgrounds/packs/free-vampires-locations-battle-background-pack/bg_4.jpg"
+  ],
+  discovery: [
+    "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/ship-and-coast-battle-game-backgrounds/bg_4.jpg",
+    "assets/backgrounds/packs/battle-location-game-asset-pack/bg_1.jpg",
+    "assets/backgrounds/packs/battle-location-game-asset-pack/bg_2.jpg",
+    "assets/backgrounds/packs/battle-location-game-asset-pack/bg_3.jpg",
+    "assets/backgrounds/packs/battle-location-game-asset-pack/bg_4.jpg"
+  ],
+  steam: [
+    "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/fantasy-forest-battle-backgrounds/bg_4.jpg",
+    "assets/backgrounds/packs/rpg-2d-arenas-for-battle-game/bg_1.jpg",
+    "assets/backgrounds/packs/rpg-2d-arenas-for-battle-game/bg_2.jpg",
+    "assets/backgrounds/packs/rpg-2d-arenas-for-battle-game/bg_3.jpg",
+    "assets/backgrounds/packs/rpg-2d-arenas-for-battle-game/bg_4.jpg"
+  ],
+  atom: [
+    "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/horizontal-dark-magic-battle-backgrounds/bg_4.jpg",
+    "assets/backgrounds/packs/dark-magic-battle-game-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/dark-magic-battle-game-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/dark-magic-battle-game-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/dark-magic-battle-game-backgrounds/bg_4.jpg"
+  ],
+  stars: [
+    "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_1.jpg",
+    "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_2.jpg",
+    "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_3.jpg",
+    "assets/backgrounds/packs/rpg-arena-backgrounds-asset-pack/bg_4.jpg",
+    "assets/backgrounds/packs/fantasy-horizontal-battle-backgrounds/bg_1.jpg",
+    "assets/backgrounds/packs/fantasy-horizontal-battle-backgrounds/bg_2.jpg",
+    "assets/backgrounds/packs/fantasy-horizontal-battle-backgrounds/bg_3.jpg",
+    "assets/backgrounds/packs/fantasy-horizontal-battle-backgrounds/bg_4.jpg"
+  ]
+};

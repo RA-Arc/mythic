@@ -1,3 +1,4 @@
+import { CombatLogView } from "./CombatLogView";
 import React, { useState } from 'react';
 import { PlayableCharacter, PlayerProfile, Faction } from '../Shadow-Requiem/src/game/types';
 import { PLAYABLE_CHARACTERS, getCharacterById } from '../Shadow-Requiem/src/game/characters';
@@ -390,6 +391,11 @@ export const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
                 </div>
               </div>
 
+            </div>
+
+            {/* Combat & Chronicles Log */}
+            <div className="mt-4 h-32 w-full">
+              <CombatLogView />
             </div>
 
             {/* Bottom Confirmation Action */}
