@@ -1,0 +1,6 @@
+{
+  "name": "Mythic Idle RPG",
+  "description": "Mythic Human History Idle & Manual RPG — A hybrid mythic timeline RPG featuring playable champion selection, manual character building, dynamic weapon movesets, real-time physics combat duels, ancestral memories, era-energy generators, and ascension mechanics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

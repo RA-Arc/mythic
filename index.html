@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mythic Idle RPG</title>
+  <meta name="description" content="Mythic Human History Idle RPG — A 10-era mythic timeline RPG featuring ancestral memories, cosmic forces, era-energy generators, real-time tactical combat, boss battles, gear crafting, and ascension mechanics." />
+  <meta property="og:title" content="Mythic Idle RPG" />
+  <meta property="og:description" content="Mythic Human History Idle RPG — A 10-era mythic timeline RPG featuring ancestral memories, cosmic forces, era-energy generators, real-time tactical combat, boss battles, gear crafting, and ascension mechanics." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // Intercept and silence benign ResizeObserver notifications
+    window.addEventListener('error', function (e) {
+      if (e.message && (
+        e.message.indexOf('ResizeObserver loop') !== -1 ||
+        e.message.indexOf('undelivered notifications') !== -1
+      )) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        return false;
+      }
+    });
+  </script>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-canvas: #090b10;
+      --bg-panel: #0d1117;
+      --bg-card: #161b22;
+      --bg-hover: #21262d;
+      --border-color: #30363d;
+      --border-focus: #58a6ff;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-blue: #1f6feb;
+      --accent-gold: #ffd700;
+      --accent-green: #238636;
+      --accent-purple: #8957e5;
+      --accent-red: #da3633;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      line-height: 1.5;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    /* Main App Layout */
+    #app-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      max-width: 1920px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    /* Top Global Header */
+    #app-header {
+      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    .header-badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--border-focus);
+      border: 1px solid rgba(88, 166, 255, 0.4);
+      padding: 2px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .header-quick-stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+    }
+
+    .quick-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    /* Maximized Main Game Screen Layout */
+    #main-content-layout {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    /* Screen Dock Navigation Toolbar */
+    #screen-dock-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      max-width: 1360px;
+      overflow-x: auto;
+      padding: 6px 8px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      scrollbar-width: thin;
+    }
+
+    .quick-nav-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .quick-nav-btn:hover {
+      background: #21262d;
+      border-color: var(--border-focus);
+      color: #58a6ff;
+      transform: translateY(-1px);
+    }
+
+    .quick-nav-btn:active {
+      transform: translateY(0);
+    }
+
+    .quick-nav-btn.btn-highlight {
+      border-color: #388bfd;
+      background: rgba(56, 139, 253, 0.15);
+      color: #79c0ff;
+    }
+
+    .quick-nav-btn.btn-gold {
+      border-color: #d29922;
+      background: rgba(210, 153, 34, 0.15);
+      color: #ffd700;
+    }
+
+    /* Central Canvas Host Container */
+    #center-viewport-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #canvas-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: min(1360px, calc(100dvh * 16 / 9));
+      max-height: 100dvh;
+      aspect-ratio: 16 / 9;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      touch-action: none;
+    }
+
+    #canvas-wrapper canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Sidebars and Panels (Legacy / Modal styling) */
+    .sidebar-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Combat Panel Specifics */
+    .skill-badge-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .skill-badge-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .skill-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .skill-name {
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 11px;
+    }
+
+    .skill-cost {
+      font-size: 9px;
+      color: var(--border-focus);
+    }
+
+    .btn-action {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      min-height: 36px;
+    }
+
+    .btn-action:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-focus);
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      border-color: #58a6ff;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #388bfd;
+    }
+
+    .btn-boss {
+      background: var(--accent-red);
+      border-color: #f85149;
+      color: #ffffff;
+    }
+
+    /* Crafting Panel Specifics */
+    .recipe-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .recipe-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .recipe-name {
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .recipe-req {
+      font-size: 9px;
+      color: var(--text-secondary);
+    }
+
+    /* Responsive Media Queries */
+    @media (max-width: 1360px) {
+      #main-content-layout {
+        grid-template-columns: 260px 1fr 290px;
+        gap: 12px;
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      #main-content-layout {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #center-viewport-container {
+        grid-column: 1 / -1;
+      }
+
+      #hero-sidebar {
+        grid-column: 1 / 2;
+      }
+
+      #right-sidebars-stack {
+        grid-column: 2 / 3;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #main-content-layout {
+        grid-template-columns: 1fr;
+        padding: 8px;
+        gap: 12px;
+      }
+
+      #center-viewport-container {
+        grid-column: 1 / 2;
+      }
+
+      #hero-sidebar {
+        grid-column: 1 / 2;
+      }
+
+      #right-sidebars-stack {
+        grid-column: 1 / 2;
+      }
+
+      .header-quick-stats {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .btn-action {
+        min-height: 44px; /* Touch target accessibility */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-container">
+    <!-- React Hybrid Shadow Requiem Host -->
+    <div id="react-shadow-requiem-root"></div>
+
+    <!-- Main Maximized Single-Screen Layout -->
+    <main id="main-content-layout">
+      <!-- Center: Maximized Responsive PixiJS Canvas Viewport -->
+      <section id="center-viewport-container">
+        <div id="canvas-wrapper">
+          <!-- PixiJS canvas and tactical HUD mount here -->
+        </div>
+      </section>
+
+      <!-- Off-screen legacy data nodes for live telemetry sync -->
+      <div id="legacy-sidebars" style="display: none;" aria-hidden="true">
+        <span id="sidebar-hero-lvl">LVL 1</span>
+        <span id="sidebar-hero-spec">Primordial Shaman</span>
+        <span id="sb-stat-hp">150 / 150</span>
+        <span id="sb-stat-dmg">15 DMG</span>
+        <span id="sb-stat-def">0 Armor</span>
+        <span id="sb-stat-crit">5.0%</span>
+        <span id="sb-stat-haste">45 frames</span>
+        <span id="sidebar-boss-indicator">WAVE COMBAT</span>
+        <button id="sidebar-summon-boss-btn"></button>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
