@@ -1,0 +1,982 @@
+[
+  {
+    "id": 0,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1773
+  },
+  {
+    "id": 1,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      85.7,
+      9.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1854
+  },
+  {
+    "id": 2,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1233
+  },
+  {
+    "id": 3,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1476
+  },
+  {
+    "id": 4,
+    "hilt": [
+      7.9,
+      89.3
+    ],
+    "tip": [
+      87.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1647
+  },
+  {
+    "id": 5,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1611
+  },
+  {
+    "id": 6,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      85.7,
+      9.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1764
+  },
+  {
+    "id": 7,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1944
+  },
+  {
+    "id": 8,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1863
+  },
+  {
+    "id": 9,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#ef692f",
+    "pixelCount": 2142
+  },
+  {
+    "id": 10,
+    "hilt": [
+      4.3,
+      87.7
+    ],
+    "tip": [
+      90.7,
+      7.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#ef3a0c",
+    "pixelCount": 1980
+  },
+  {
+    "id": 11,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#3c9f9c",
+    "pixelCount": 1548
+  },
+  {
+    "id": 12,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      79.3,
+      11.9
+    ],
+    "dominant": "#c084e2",
+    "accent": "#2a1d0d",
+    "pixelCount": 2502
+  },
+  {
+    "id": 13,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efac28",
+    "pixelCount": 2430
+  },
+  {
+    "id": 14,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      83.1,
+      10.1
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2349
+  },
+  {
+    "id": 15,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2601
+  },
+  {
+    "id": 16,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      83.1,
+      10.1
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#392a1c",
+    "pixelCount": 2547
+  },
+  {
+    "id": 17,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1809
+  },
+  {
+    "id": 18,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1062
+  },
+  {
+    "id": 19,
+    "hilt": [
+      6.0,
+      87.8
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2115
+  },
+  {
+    "id": 20,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#ef3a0c",
+    "pixelCount": 1944
+  },
+  {
+    "id": 21,
+    "hilt": [
+      7.9,
+      89.3
+    ],
+    "tip": [
+      87.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1962
+  },
+  {
+    "id": 22,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#684c3c",
+    "pixelCount": 2097
+  },
+  {
+    "id": 23,
+    "hilt": [
+      6.0,
+      87.8
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#ef3a0c",
+    "pixelCount": 2043
+  },
+  {
+    "id": 24,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1134
+  },
+  {
+    "id": 25,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2016
+  },
+  {
+    "id": 26,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1998
+  },
+  {
+    "id": 27,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1395
+  },
+  {
+    "id": 28,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1665
+  },
+  {
+    "id": 29,
+    "hilt": [
+      6.0,
+      84.8
+    ],
+    "tip": [
+      90.7,
+      7.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2088
+  },
+  {
+    "id": 30,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1431
+  },
+  {
+    "id": 31,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1692
+  },
+  {
+    "id": 32,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1935
+  },
+  {
+    "id": 33,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2178
+  },
+  {
+    "id": 34,
+    "hilt": [
+      7.3,
+      87.7
+    ],
+    "tip": [
+      87.7,
+      7.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 999
+  },
+  {
+    "id": 35,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      89.3,
+      4.9
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efb775",
+    "pixelCount": 1854
+  },
+  {
+    "id": 36,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1737
+  },
+  {
+    "id": 37,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#ab5c1c",
+    "pixelCount": 2268
+  },
+  {
+    "id": 38,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efb775",
+    "pixelCount": 1404
+  },
+  {
+    "id": 39,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2196
+  },
+  {
+    "id": 40,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#ef3a0c",
+    "pixelCount": 1539
+  },
+  {
+    "id": 41,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1647
+  },
+  {
+    "id": 42,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1647
+  },
+  {
+    "id": 43,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1755
+  },
+  {
+    "id": 44,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      82.9,
+      9.5
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1962
+  },
+  {
+    "id": 45,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#3c9f9c",
+    "pixelCount": 1980
+  },
+  {
+    "id": 46,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efb775",
+    "pixelCount": 1917
+  },
+  {
+    "id": 47,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1251
+  },
+  {
+    "id": 48,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#a56243",
+    "accent": "#2a1d0d",
+    "pixelCount": 2349
+  },
+  {
+    "id": 49,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#6b3ab3",
+    "pixelCount": 2718
+  },
+  {
+    "id": 50,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1944
+  },
+  {
+    "id": 51,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      84.8,
+      6.0
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2007
+  },
+  {
+    "id": 52,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      86.1,
+      7.1
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#3c9f9c",
+    "pixelCount": 1953
+  },
+  {
+    "id": 53,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efac28",
+    "pixelCount": 1647
+  },
+  {
+    "id": 54,
+    "hilt": [
+      7.3,
+      87.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1755
+  },
+  {
+    "id": 55,
+    "hilt": [
+      4.9,
+      89.3
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1719
+  },
+  {
+    "id": 56,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#684c3c",
+    "pixelCount": 1341
+  },
+  {
+    "id": 57,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#3c9f9c",
+    "pixelCount": 2169
+  },
+  {
+    "id": 58,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1206
+  },
+  {
+    "id": 59,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 2232
+  },
+  {
+    "id": 60,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1899
+  },
+  {
+    "id": 61,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#c084e2",
+    "pixelCount": 1485
+  },
+  {
+    "id": 62,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efb775",
+    "pixelCount": 2142
+  },
+  {
+    "id": 63,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efac28",
+    "pixelCount": 2052
+  },
+  {
+    "id": 64,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efac28",
+    "pixelCount": 1584
+  },
+  {
+    "id": 65,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#ab5c1c",
+    "pixelCount": 1575
+  },
+  {
+    "id": 66,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#ef3a0c",
+    "pixelCount": 1026
+  },
+  {
+    "id": 67,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efac28",
+    "pixelCount": 1647
+  },
+  {
+    "id": 68,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#efd8a1",
+    "pixelCount": 1818
+  },
+  {
+    "id": 69,
+    "hilt": [
+      4.3,
+      90.7
+    ],
+    "tip": [
+      90.7,
+      4.3
+    ],
+    "dominant": "#2a1d0d",
+    "accent": "#a58c27",
+    "pixelCount": 2187
+  }
+]
